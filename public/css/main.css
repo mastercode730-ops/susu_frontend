@@ -1,0 +1,591 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Base light variables ── */
+:root {
+  --green:#25d366; --green-dark:#128c7e; --green2:#128c7e; --green3:#075e54;
+  --green-light:rgba(37,211,102,0.1);
+  --bg:#f4f6f9; --panel:#ffffff; --panel2:#f1f3f5; --card:#ffffff; --card2:#f8f9fa;
+  --border:#dee2e6;
+  --text:#212529; --text2:#495057; --muted:#6c757d;
+  --red:#dc3545; --error:#dc3545; --warning:#fd7e14; --yellow:#ffc107;
+  --blue:#0d6efd; --purple:#6861ce; --orange:#fd7e14;
+  --pending:#fd7e14; --accepted:#198754; --rejected:#dc3545;
+  --primary:#128c7e; --primary-pale:rgba(18,140,126,0.1);
+  --badge-bg:rgba(220,53,69,0.12); --badge-red:#8b1a24;
+  --nav-h:56px;
+}
+
+:root:root {
+  --bg:     #f4f6f9 !important;
+  --panel:  #ffffff !important;
+  --panel2: #f1f3f5 !important;
+  --border: #dee2e6 !important;
+  --text:   #212529 !important;
+  --text2:  #495057 !important;
+  --muted:  #6c757d !important;
+  --red:    #dc3545 !important;
+  --yellow: #ffc107 !important;
+  --blue:   #0d6efd !important;
+  --green:  #25d366 !important;
+  --green2: #128c7e !important;
+  --green3: #075e54 !important;
+  --primary:      #128c7e             !important;
+  --primary-pale: rgba(18,140,126,0.1) !important;
+}
+
+/* ── HTML/Body ── */
+html { color-scheme: light; -webkit-text-size-adjust: 100%; }
+body {
+  font-family:'Noto Sans',sans-serif;
+  background:var(--bg)!important;
+  color:var(--text)!important;
+  min-height:100vh;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
+}
+
+/* NAVBAR section removed — nav.js now renders the shared Atlantis
+   sidebar/header shell directly; no page uses .navbar/.nav-link/.nav-drawer
+   anymore. These were left unscoped with !important and collided with the
+   real Atlantis .sidebar/.nav-item classes (e.g. sidebar background/border
+   flipping depending on whether a page linked main.css). */
+
+/* ══════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════ */
+.main,.page,.content {
+  padding:16px 20px!important;
+  width:100%;
+  box-sizing:border-box;
+}
+
+/* ══════════════════════════════════════════
+   CARDS
+   .card/.card-header/.card-body/.card-title are real Atlantis classes used
+   by every ASPX-matching card on every page — these used to be redefined
+   here (green uppercase Rajdhani title, 12px radius, custom padding) with
+   partial !important, producing an unpredictable mix of this file's and
+   Atlantis's rules depending on which specific property had !important.
+   Removed so Atlantis's own card styling (plain gray title, 5px radius,
+   1.25rem padding) applies untouched, matching the ASPX exactly.
+══════════════════════════════════════════ */
+.ctitle-icon { font-size:1rem; }
+
+/* ══════════════════════════════════════════
+   TABLES — responsive scroll wrapper
+══════════════════════════════════════════ */
+.table-wrap {
+  width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border-radius:8px;
+}
+/* Bare table/th/td rules removed — they were unscoped with !important and
+   overrode every ASPX-style table's own inline header color, cellpadding,
+   and text-align across the whole site (this is why headers/rows looked
+   bigger/differently-styled than the ASPX reference on almost every page).
+   Every live table now sets its own LightGray header + cellpadding inline,
+   matching the original ASPX GridView markup directly. Row-select highlight
+   (.selected-row) is likewise defined locally per-page now, matching each
+   page's own ASPX color (#d3d3d3 etc.), not forced green here. */
+
+/* ══════════════════════════════════════════
+   FORMS
+   .form-group/.form-control/label are real Bootstrap/Atlantis class names
+   used by every ASPX-matching form across the site — these used to be
+   redefined here (uppercase letter-spaced labels, 8px-radius 16px-font
+   inputs, flex-column .form-group) with !important, overriding Atlantis's
+   own (plainer, ASPX-matching) styling almost everywhere. Only the
+   genuinely custom class names (.inp/.sel/.filter-inp/.search-input/.fg)
+   are still styled here now.
+══════════════════════════════════════════ */
+.frow {
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.fg {
+  flex:1;
+  min-width:130px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.fg.fg2 { flex:2; }
+.fg label {
+  display:block;
+  color:var(--muted)!important;
+  font-size:.7rem;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  margin-bottom:4px;
+  font-weight:600;
+}
+.inp,.sel,.filter-inp,.search-input {
+  width:100%;
+  background:#fff!important;
+  border:1px solid var(--border)!important;
+  border-radius:8px;
+  padding:10px 13px!important;
+  color:var(--text)!important;
+  font-family:'Noto Sans',sans-serif;
+  font-size:16px;
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+@media (min-width:480px) {
+  .inp,.sel,.filter-inp,.search-input { font-size:.92rem!important; }
+}
+.inp:focus,.sel:focus,.filter-inp:focus,.search-input:focus {
+  border-color:var(--green2)!important;
+  box-shadow:0 0 0 3px rgba(18,140,126,.1);
+}
+.inp::placeholder,.filter-inp::placeholder,.search-input::placeholder {
+  color:#adb5bd!important;
+}
+.inp option,.sel option {
+  background:#fff!important;
+  color:var(--text)!important;
+}
+
+/* ══════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════ */
+/* Bare .btn rule removed — it's a real Bootstrap/Atlantis class used by
+   every button on every page (including the shared sidebar's Dashboard/
+   Support buttons), and its !important padding/font-size/min-height/
+   Rajdhani-font overrode Atlantis's own (ASPX-matching) button style
+   everywhere. Atlantis's `.btn` now applies untouched. */
+/* Scoped to `.content` (the page's own body area, per nav.js's wrapper) —
+   .btn-primary/.btn-secondary/.btn-danger are real Bootstrap/Atlantis class
+   names also used by the shared sidebar shell; unscoped !important rules here
+   used to leak into the sidebar (e.g. the "Dashboard" button flipping between
+   Atlantis's blue and this green depending on whether a page linked main.css). */
+.content .btn-primary,.content .btn-green,.content .btn-p { background:var(--green2)!important; color:#fff!important; }
+.content .btn-primary:hover,.content .btn-green:hover,.content .btn-p:hover { background:var(--green3)!important; }
+.content .btn-secondary,.content .btn-s { background:#fff!important; border:1px solid var(--border)!important; color:var(--muted)!important; }
+.content .btn-secondary:hover,.content .btn-s:hover { border-color:var(--green2)!important; color:var(--green2)!important; }
+.content .btn-danger,.content .btn-d { background:rgba(220,53,69,.08)!important; color:var(--red)!important; border:1px solid rgba(220,53,69,.25)!important; }
+.content .btn-danger:hover,.content .btn-d:hover { background:rgba(220,53,69,.15)!important; }
+.btn-blue { background:var(--blue)!important; color:#fff!important; }
+.btn-sm { padding:5px 12px; font-size:.8rem; min-height:32px; }
+.btn-xs { padding:3px 8px; font-size:.72rem; min-height:28px; }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.search-btn { background:var(--green2)!important; color:#fff!important; }
+
+/* Full-width button helper for mobile */
+.btn-block { width:100%; }
+
+/* ══════════════════════════════════════════
+   BADGES
+══════════════════════════════════════════ */
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:600; }
+.badge-pending  { background:rgba(253,126,20,.12); color:#a84d00; }
+.badge-accepted { background:rgba(25,135,84,.12);  color:#0d5c32; }
+.badge-rejected { background:rgba(220,53,69,.12);  color:#8b1a24; }
+.badge-info     { background:rgba(13,110,253,.12); color:#084298; }
+
+/* ── LINK CELLS ── */
+/* ASPX GridView customer links are plain LinkButtons with no custom color —
+   they just take Atlantis's default anchor color (#1572E8), not green/underlined. */
+.link-cell,td.link-cell { color:#1572E8!important; font-weight:600; cursor:pointer; }
+.link-cell:hover { color:#1269DB!important; }
+
+/* ══════════════════════════════════════════
+   LOADING / EMPTY
+══════════════════════════════════════════ */
+.loading,.emsg { display:flex; align-items:center; justify-content:center; padding:36px; color:var(--muted)!important; font-size:.875rem; }
+.empty-state { text-align:center; padding:36px; color:var(--muted)!important; font-size:.875rem; }
+.spinner,.spin { display:inline-block; width:18px; height:18px; border:2px solid rgba(18,140,126,.2); border-top-color:var(--green2); border-radius:50%; animation:_sp .7s linear infinite; margin-right:8px; flex-shrink:0; vertical-align:middle; }
+@keyframes _sp { to { transform:rotate(360deg); } }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+.toast,.toast-msg {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#2d3748!important;
+  color:#fff!important;
+  padding:10px 18px;
+  border-radius:8px;
+  font-size:.84rem;
+  z-index:9999;
+  display:none;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  border:none!important;
+  max-width:calc(100vw - 40px); /* don't overflow screen */
+}
+.toast.err,.toast.terr { background:var(--red)!important; }
+.toast.ok,.toast.tok  { background:var(--accepted)!important; }
+.toast-wrap { position:fixed; bottom:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; max-width:calc(100vw - 40px); }
+.toast-wrap .toast { position:relative; bottom:auto; right:auto; display:flex; align-items:center; gap:8px; }
+@keyframes toastin { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes ti { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+/* ══════════════════════════════════════════
+   STATS GRID
+══════════════════════════════════════════ */
+.stats-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:14px;
+  margin-bottom:20px;
+}
+.stat-card {
+  background:var(--panel)!important;
+  border:1px solid var(--border)!important;
+  border-radius:12px;
+  padding:18px 16px 14px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  transition:box-shadow .2s, transform .2s;
+}
+.stat-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); transform:translateY(-1px); }
+.stat-card::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+  background:var(--green2);
+}
+.stat-card.red::before  { background:var(--red); }
+.stat-card.blue::before { background:var(--blue); }
+.stat-card.orange::before { background:var(--orange); }
+.stat-card.purple::before { background:var(--purple); }
+.stat-icon { font-size:1.5rem; margin-bottom:8px; display:block; }
+.stat-value,.stat-val { font-family:'Rajdhani',sans-serif; font-size:1.9rem; font-weight:700; color:var(--green2)!important; line-height:1; }
+.stat-card.red  .stat-value, .stat-card.red  .stat-val  { color:var(--red)!important; }
+.stat-card.blue .stat-value, .stat-card.blue .stat-val  { color:var(--blue)!important; }
+.stat-card.orange .stat-value, .stat-card.orange .stat-val { color:var(--orange)!important; }
+.stat-card.purple .stat-value, .stat-card.purple .stat-val { color:var(--purple)!important; }
+.stat-label,.stat-lbl { color:var(--muted)!important; font-size:.72rem; text-transform:uppercase; letter-spacing:1px; margin-top:6px; }
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+.modal-bg {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:500;
+  align-items:center;
+  justify-content:center;
+  padding:10px;
+  overflow-y:auto;
+}
+.modal-bg.show { display:flex; }
+.modal-box {
+  background:var(--panel)!important;
+  border-radius:12px;
+  width:100%;
+  max-width:480px;
+  overflow:hidden;
+  box-shadow:0 12px 40px rgba(0,0,0,.18);
+  /* Don't let modal go off screen on small phones */
+  margin:auto;
+  max-height:calc(100vh - 20px);
+  overflow-y:auto;
+}
+.modal-box.wide { max-width:950px; }
+.modal-hd {
+  background:var(--green3)!important;
+  padding:12px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+.modal-hd h3,.modal-hd h4 { font-family:'Rajdhani',sans-serif; font-size:1.05rem; color:#fff!important; }
+.modal-close { background:none; border:none; font-size:1.4rem; cursor:pointer; color:rgba(255,255,255,.75)!important; line-height:1; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; }
+.modal-body,.modal-body-inner { padding:16px; }
+
+/* ══════════════════════════════════════════
+   HOME PAGE
+══════════════════════════════════════════ */
+.games-bar { background:var(--panel)!important; border-bottom:1px solid var(--border)!important; flex-wrap:wrap; }
+.gb-label { color:var(--muted)!important; white-space:nowrap; }
+.game-pill { background:var(--panel2)!important; border:1px solid var(--border)!important; flex-shrink:0; }
+.game-pill:hover { background:rgba(18,140,126,.08)!important; border-color:var(--green2)!important; }
+.gp-name { color:var(--text)!important; }
+.gp-time { color:var(--muted)!important; }
+
+/* .sidebar rule removed — collided with the real Atlantis sidebar
+   (class="sidebar sidebar-style-2") the same way .navbar did above. */
+.search-input {
+  background:var(--panel2)!important;
+  color:var(--text)!important;
+  border:1px solid var(--border)!important;
+  border-radius:8px;
+  padding:9px 14px;
+  outline:none;
+}
+.search-input::placeholder { color:var(--muted)!important; }
+.search-input:focus { border-color:var(--green2)!important; }
+.sec-label { background:var(--panel2)!important; color:var(--muted)!important; border-bottom:1px solid var(--border)!important; padding:6px 16px; font-size:.67rem; letter-spacing:1.2px; text-transform:uppercase; font-weight:600; }
+.citem { border-bottom:1px solid #f0f0f0!important; }
+.citem:hover { background:var(--panel2)!important; }
+.citem.sel { background:var(--panel2)!important; border-left:3px solid var(--green2)!important; }
+.cn { color:var(--text)!important; }
+.cm,.hs { color:var(--muted)!important; }
+.av,.hav,.cav { background:var(--green2)!important; color:#fff!important; }
+.right-panel { background:var(--bg)!important; }
+.ws-title { color:var(--text2)!important; }
+.ws-sub { color:var(--muted)!important; }
+.gcrd { background:var(--panel)!important; border:1px solid var(--border)!important; }
+.gcrd:hover { background:rgba(18,140,126,.05)!important; border-color:var(--green2)!important; }
+.gcrd-name { color:var(--green2)!important; }
+.gcrd-time { color:var(--muted)!important; }
+.ritem { background:var(--panel)!important; border:1px solid var(--border)!important; }
+.ritem:hover { background:rgba(18,140,126,.05)!important; border-color:var(--green2)!important; }
+.rv { color:var(--green2)!important; }
+.rd { color:var(--muted)!important; }
+.ph { background:var(--panel)!important; border-bottom:1px solid var(--border)!important; }
+.hn { color:var(--text)!important; }
+.back-btn { background:rgba(0,0,0,.06); border:1px solid var(--border); color:var(--text); }
+
+/* ── CONTACTS PAGE ── */
+.citem { border:1px solid var(--border)!important; border-radius:10px; margin-bottom:7px; }
+.citem:hover { border-color:var(--green2)!important; background:rgba(18,140,126,.04)!important; }
+.citem.sel { border-color:var(--green2)!important; background:rgba(18,140,126,.06)!important; }
+.cname { color:var(--text)!important; }
+.cmob { color:var(--muted)!important; }
+.rate-form { background:var(--panel2)!important; border:1px solid var(--border)!important; border-radius:10px; padding:14px; }
+.tog-yes { background:rgba(37,211,102,.12)!important; color:#0d5c32!important; }
+.tog-no  { background:rgba(220,53,69,.1)!important;   color:#8b1a24!important; }
+
+/* ── MISC ── */
+.detail-row { border-bottom:1px solid var(--border)!important; }
+.dl { color:var(--muted)!important; }
+.dv { color:var(--text)!important; }
+.dv.big { color:var(--green2)!important; }
+.radio-tabs { background:var(--panel2)!important; border:1px solid var(--border)!important; }
+.rtab { color:var(--muted)!important; background:transparent; }
+.rtab.active { background:var(--green2)!important; color:#fff!important; }
+.tab-btn,.type-btn { background:transparent!important; border:1px solid var(--border)!important; color:var(--muted)!important; }
+.tab-btn.active,.type-btn.active { background:var(--green2)!important; color:#fff!important; border-color:var(--green2)!important; }
+.access-item { border:1px solid var(--border)!important; color:var(--text)!important; }
+.access-item:hover { border-color:var(--green2)!important; }
+.ubadge { background:var(--green)!important; color:#fff!important; }
+.gp-badge { background:#dc3545!important; color:#fff!important; }
+
+/* ══════════════════════════════════════════
+   PANEL SPLIT
+══════════════════════════════════════════ */
+.panel-split {
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:16px;
+}
+
+/* ══════════════════════════════════════════
+   SCROLLBAR
+══════════════════════════════════════════ */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:var(--panel2); }
+::-webkit-scrollbar-thumb { background:#ced4da; border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:#adb5bd; }
+
+
+/* ╔══════════════════════════════════════════╗
+   ║   RESPONSIVE — TABLET  (max 900px)       ║
+   ╚══════════════════════════════════════════╝ */
+@media (max-width:900px) {
+
+  /* Panel split: sidebar goes on top */
+  .panel-split {
+    grid-template-columns: 1fr;
+  }
+
+  /* Wider modal */
+  .modal-box.wide { max-width: 98vw; }
+
+  /* Stats: 3 per row on tablet */
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Cards: reduce padding */
+  .card { padding: 14px; }
+
+  /* Form rows: 2 per row on tablet */
+  .form-group,.fg { min-width: 160px; }
+}
+
+
+/* ╔══════════════════════════════════════════╗
+   ║   RESPONSIVE — MOBILE  (max 768px)       ║
+   ╚══════════════════════════════════════════╝ */
+@media (max-width:768px) {
+
+  /* ── Layout ── */
+  .main,.page,.content { padding: 10px; }
+
+  /* ── Stats: 2 per row ── */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-value,.stat-val { font-size: 1.4rem; }
+
+  /* ── Cards ── */
+  .card { padding: 12px; border-radius: 8px; }
+  .card-title,.ctitle { font-size: .95rem; }
+
+  /* ── Tables: horizontal scroll ── */
+  .table-wrap { border-radius: 6px; }
+  table { font-size: .85rem!important; }
+  th { padding: 8px 10px!important; font-size: .7rem!important; }
+  td { padding: 8px 10px!important; }
+  tfoot td { padding: 8px 10px!important; }
+
+  /* ── Forms: full width stack ── */
+  .form-row,.frow { gap: 8px; }
+  .form-group,.fg { min-width: 100%; flex: 1 1 100%; }
+  .fg.fg2 { flex: 1 1 100%; }
+
+  /* ── Buttons: larger touch area ── */
+  .btn { min-height: 44px!important; }
+  .btn-sm { min-height: 38px!important; padding: 7px 14px!important; }
+
+  /* ── Modal: full-width bottom sheet style ── */
+  .modal-bg { align-items: flex-end; padding: 0; }
+  .modal-box {
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+    max-width: 100%;
+    width: 100%;
+  }
+  .modal-box.wide {
+    border-radius: 16px 16px 0 0;
+    max-width: 100%;
+  }
+
+  /* ── Toast: full width at bottom ── */
+  .toast,.toast-msg {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    max-width: calc(100vw - 20px);
+  }
+  .toast-wrap {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    max-width: calc(100vw - 20px);
+  }
+
+  /* ── Radio tabs: scrollable row ── */
+  .radio-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  .rtab { white-space: nowrap; flex-shrink: 0; }
+
+  /* ── Tab buttons: scrollable ── */
+  .tabs-row {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
+  .tab-btn,.type-btn { white-space: nowrap; flex-shrink: 0; }
+
+  /* ── Games bar: wrap on mobile too ── */
+  .games-bar {
+    flex-wrap: wrap;
+  }
+
+  /* ── Detail rows: stack label + value ── */
+  .detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 0;
+  }
+}
+
+
+/* ╔══════════════════════════════════════════╗
+   ║   RESPONSIVE — SMALL PHONE  (max 480px)  ║
+   ╚══════════════════════════════════════════╝ */
+@media (max-width:480px) {
+
+  /* ── Stats: 2 per row, smaller ── */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .stat-card { padding: 10px 8px; }
+  .stat-value,.stat-val { font-size: 1.2rem; }
+  .stat-label,.stat-lbl { font-size: .65rem; }
+
+  /* ── Font sizes down a notch ── */
+  body { font-size: 13px; }
+  table { font-size: .8rem!important; }
+  th { padding: 7px 8px!important; font-size: .68rem!important; }
+  td { padding: 7px 8px!important; }
+  tfoot td { padding: 7px 8px!important; }
+
+  /* ── Buttons: slightly smaller ── */
+  .btn { padding: 8px 14px; font-size: .85rem; }
+
+  /* ── Card tighter ── */
+  .card { padding: 10px; }
+
+  /* ── Modal full bottom sheet ── */
+  .modal-box { max-height: 92vh; }
+
+  /* ── Form inputs full width always ── */
+  .form-row,.frow { flex-direction: column; }
+  .form-group,.fg,.fg.fg2 { min-width: 100%; flex: 1 1 100%; }
+}
+
+
+/* ╔══════════════════════════════════════════╗
+   ║   UTILITY HELPERS (responsive)           ║
+   ╚══════════════════════════════════════════╝ */
+
+/* Hide on mobile */
+.hide-mobile { display: initial; }
+@media (max-width:768px) { .hide-mobile { display: none !important; } }
+
+/* Show only on mobile */
+.show-mobile { display: none !important; }
+@media (max-width:768px) { .show-mobile { display: initial !important; } }
+
+/* Hide on tablet and below */
+.hide-tablet { display: initial; }
+@media (max-width:900px) { .hide-tablet { display: none !important; } }
+
+/* Flex gap fix for older Safari */
+.flex-gap-fix > * + * { margin-left: 8px; }
+@supports (gap: 8px) { .flex-gap-fix > * + * { margin-left: 0; } }
+
+/* Touch scroll */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.scroll-y {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+/* Text truncate */
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Full width on mobile */
+@media (max-width:768px) {
+  .full-mobile { width: 100% !important; }
+  .btn-full-mobile { width: 100% !important; justify-content: center; }
+}

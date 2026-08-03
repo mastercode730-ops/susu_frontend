@@ -1,0 +1,105 @@
+/* ═══════════════════════════════════════════════════════════════════
+   polish.css — site-wide readability & eye-comfort layer.
+   Loaded AFTER the Atlantis theme (see theme-preload.js / nav.js), so it
+   only fine-tunes what the theme already renders. Visual-only: no layout,
+   no ids, no behavior — safe to tweak without touching any page's logic.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Typography: crisp rendering, comfortable base size ── */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+.content { font-size: 14px; }
+
+/* ── 2. Data tables (the GridView-style lists on almost every page) ──
+   The theme draws every cell border in full-strength blue (#1572E8),
+   which gets visually loud on big lists. Same hue, lower intensity —
+   the table still reads as "the blue-bordered grid" but stops glaring. */
+.table-bordered-bd-primary td,
+.table-bordered-bd-primary th {
+  border-color: rgba(21, 114, 232, 0.35) !important;
+  font-size: 13.5px;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+
+/* Header/footer strips: softer than the inline LightGray (#d3d3d3),
+   with darker text for contrast — easier to scan long lists. */
+.table-bordered-bd-primary thead tr,
+.table-bordered-bd-primary tfoot tr {
+  background-color: #eef1f5 !important;
+}
+.table-bordered-bd-primary thead th {
+  font-weight: 600;
+  color: #212529;
+  white-space: nowrap;
+}
+
+/* Subtle zebra striping + row hover: the eye keeps its place on wide
+   rows (Sale/Balance columns far from the customer name).
+   :not(.selected-row) keeps each page's own row-select highlight intact. */
+.table-bordered-bd-primary tbody tr:nth-child(even):not(.selected-row) {
+  background-color: #fafbfd;
+}
+.table-bordered-bd-primary tbody tr:hover:not(.selected-row) {
+  background-color: #f0f5fc;
+}
+
+/* ── 3. Inputs: calm focus ring instead of browser default outline ── */
+.form-control { font-size: 14px; }
+.form-control:focus {
+  border-color: #1572e8;
+  box-shadow: 0 0 0 3px rgba(21, 114, 232, 0.12);
+  outline: none;
+}
+
+/* ── 4. Buttons: keep the theme's colors, just steady the text ── */
+.btn { letter-spacing: 0.2px; }
+
+/* ── 4b. Green customer names (home/received contact cards): the ASPX's
+   WhatsApp green (#25d366) is too light against white for body text —
+   same green family, two steps darker, so names stay "brand green" but
+   are actually readable at a glance ── */
+.cn, .cust-name { color: #17a34a !important; }
+
+/* ── 5. Long number strings (chat messages, message columns) breathe ── */
+.msg-text, .sh-mtxt { line-height: 1.5; }
+
+/* ── 6. Card titles: a touch smaller than Atlantis's 20px so page
+   headings don't shout over the data below them ── */
+.card-title { font-size: 17px; font-weight: 600; }
+
+/* ── 7. Scroll containers: thin neutral scrollbars everywhere ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #c5cdd6; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #aab4bf; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ── 8. Mobile comfort: slightly larger tap targets, no cramped cells ── */
+@media (max-width: 768px) {
+  .table-bordered-bd-primary td,
+  .table-bordered-bd-primary th {
+    font-size: 13px;
+    padding: 6px 8px;
+    white-space: nowrap;
+  }
+  .btn { min-height: 40px; }
+  .form-control { min-height: 42px; font-size: 16px; } /* 16px stops iOS auto-zoom */
+
+  /* Tables wider than the viewport scroll inside .table-responsive with no
+     visible affordance that more columns exist off to the right — add a
+     fading edge so it reads as "scrollable" instead of "cut off". */
+  .table-responsive {
+    position: relative;
+    background:
+      linear-gradient(to right, white 30%, rgba(255,255,255,0)),
+      linear-gradient(to left, white 30%, rgba(255,255,255,0)) 100% 0,
+      radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.15), rgba(0,0,0,0)),
+      radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.15), rgba(0,0,0,0)) 100% 0;
+    background-repeat: no-repeat;
+    background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+}
