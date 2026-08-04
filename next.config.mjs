@@ -4,11 +4,15 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3001/api/:path*',
+        destination: process.env.BACKEND_URL
+          ? `${process.env.BACKEND_URL}/api/:path*`
+          : 'http://200.141.1.187/api/:path*',
       },
       {
         source: '/uploads/:path*',
-        destination: 'http://localhost:3001/uploads/:path*',
+        destination: process.env.BACKEND_URL
+          ? `${process.env.BACKEND_URL}/uploads/:path*`
+          : 'http://200.141.1.187/uploads/:path*',
       },
     ];
   },
