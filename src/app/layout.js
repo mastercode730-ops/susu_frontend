@@ -28,9 +28,9 @@ export default function RootLayout({ children }) {
         <Script src="/vendor/assets/js/core/jquery.3.2.1.min.js" strategy="beforeInteractive" />
         <Script src="/vendor/assets/js/core/popper.min.js" strategy="beforeInteractive" />
         <Script src="/vendor/assets/js/core/bootstrap.min.js" strategy="beforeInteractive" />
-        <Script src="/vendor/assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js" strategy="lazyOnload" />
-        <Script src="/vendor/assets/js/plugin/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js" strategy="lazyOnload" />
-        <Script src="/vendor/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js" strategy="lazyOnload" />
+        <Script src="/vendor/assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js" strategy="beforeInteractive" />
+        <Script src="/vendor/assets/js/plugin/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js" strategy="beforeInteractive" />
+        <Script src="/vendor/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js" strategy="beforeInteractive" />
         <Script src="/vendor/assets/js/plugin/sweetalert/sweetalert.min.js" strategy="beforeInteractive" />
         <Script src="/vendor/assets/js/atlantis.min.js" strategy="lazyOnload" />
       </body>
