@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { LayoutGrid, Share2, Copy, Send, Settings, ArrowLeft, RefreshCw } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { formatCurrency } from '../../../lib/utils';
 import { PageHeader } from '../../../components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
 import { Input } from '../../../components/ui/input';
