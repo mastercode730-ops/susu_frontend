@@ -4,8 +4,12 @@ const nextConfig = {
     const backendUrl = process.env.BACKEND_URL || 'http://200.141.1.187';
     return [
       {
+        source: '/sapi/:path*',
+        destination: `${backendUrl}/sapi/:path*`,
+      },
+      {
         source: '/api/:path*',
-        destination: `${backendUrl}/api/:path*`,
+        destination: `${backendUrl}/sapi/:path*`,
       },
       {
         source: '/uploads/:path*',

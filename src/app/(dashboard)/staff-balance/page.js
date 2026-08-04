@@ -2,8 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Wallet, Search, Users } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent, StatCard } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Button } from '../../../components/ui/button';
+import { DataTable } from '../../../components/tables/DataTable';
+import { formatCurrency } from '../../../lib/utils';
 
 function toApiDate(dateStr) {
   if (!dateStr) return '';
@@ -14,18 +21,6 @@ function toApiDate(dateStr) {
   const month = months[d.getMonth()];
   const year = d.getFullYear();
   return `${day}/${month}/${year}`;
-}
-
-function toInputDate(apiDate) {
-  if (!apiDate) return '';
-  const months = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
-  const parts = apiDate.split('/');
-  if (parts.length === 3) {
-    const month = months[parts[1]] || '01';
-    const day = parts[0].padStart(2, '0');
-    return `${parts[2]}-${month}-${day}`;
-  }
-  return apiDate;
 }
 
 export default function StaffBalancePage() {
@@ -42,15 +37,13 @@ export default function StaffBalancePage() {
 
   const fetchSessionUser = async () => {
     try {
-      const r = await API.get('/api/auth/me');
+      const r = await API.get('/sapi/auth/me');
       if (r && r.user) {
         if (r.user.SubUID) {
-          // If subuser, redirect back to home (ASPX logic)
           router.push('/home');
           return;
         }
-        
-        // Initial setup
+
         const today = new Date().toISOString().split('T')[0];
         setSelectedDate(today);
         loadStaffGrid(today);
@@ -68,7 +61,7 @@ export default function StaffBalancePage() {
 
     const apiDate = toApiDate(dateVal);
     try {
-      const r = await API.get(`/api/balance/staff-grid?date=${encodeURIComponent(apiDate)}`);
+      const r = await API.get(`/sapi/balance/staff-grid?date=${encodeURIComponent(apiDate)}`);
       if (r && r.success) {
         const sorted = (r.data || []).sort((a, b) => (a.subusername || '').localeCompare(b.subusername || ''));
         setStaffData(sorted);
@@ -82,97 +75,71 @@ export default function StaffBalancePage() {
     }
   };
 
-  const handleSearch = () => {
-    loadStaffGrid(selectedDate);
-  };
+  const columns = [
+    {
+      header: 'Sub User',
+      accessorKey: 'subusername',
+      cell: ({ row }) => (
+        <button
+          onClick={() => router.push(`/accounts?SUID=${row.original.SubUserID}`)}
+          className="font-bold text-xs text-blue-600 hover:underline dark:text-blue-400 capitalize"
+        >
+          {row.original.subusername || row.original.SubUserID}
+        </button>
+      ),
+    },
+    {
+      header: 'Staff ID',
+      accessorKey: 'SubUserID',
+      cell: ({ row }) => <span className="text-xs font-mono">{row.original.SubUserID}</span>,
+    },
+    {
+      header: 'Net Balance',
+      accessorKey: 'Balance',
+      cell: ({ row }) => {
+        const b = parseFloat(row.original.Balance) || 0;
+        return <span className={`font-bold text-xs ${b < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatCurrency(b)}</span>;
+      },
+    },
+  ];
 
   return (
-    <div className="content">
-      {/* Date Filter search */}
-      <div className="card" style={{ marginBottom: '16px' }}>
-        <div className="card-body" style={{ padding: '14px' }}>
-          <div className="row">
-            <div className="col-md-4">
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontWeight: 'bold' }}>Date</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="col-md-8" style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', marginTop: '12px' }}>
-              <button className="btn btn-success" onClick={handleSearch} disabled={loading}>
-                Find
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Sub-User Staff Balance Sheet"
+        description="Monitor current net balance position and ledger totals across sub-user staff accounts."
+      />
 
-      {/* Sub User Balance Table Grid */}
-      <div className="card">
-        <div className="card-header" style={{ padding: '12px 14px' }}>
-          <div className="card-title" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Sub User Balance Sheet</div>
-        </div>
-        <div className="table-responsive">
-          <table className="table-bordered-bd-primary table-hover" style={{ textTransform: 'capitalize', textAlign: 'center', width: '100%', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'LightGray' }}>
-                <th style={{ padding: '8px', width: '80px' }}>SRNo</th>
-                <th>Sub User</th>
-                <th>Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={3} style={{ padding: '24px' }}>
-                    <span className="spin"></span> Loading Sub User list...
-                  </td>
-                </tr>
-              ) : staffData.length === 0 ? (
-                <tr>
-                  <td colSpan={3} style={{ padding: '24px', color: 'var(--muted)' }}>
-                    No Sub Users found.
-                  </td>
-                </tr>
-              ) : (
-                staffData.map((r, i) => (
-                  <tr key={i}>
-                    <td style={{ padding: '8px' }}>{i + 1}</td>
-                    <td>
-                      <button 
-                        onClick={() => router.push(`/accounts?SUID=${r.SubUserID}`)}
-                        style={{ background: 'none', border: 'none', color: '#1572E8', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}
-                      >
-                        {r.subusername || r.SubUserID}
-                      </button>
-                    </td>
-                    <td style={{ fontWeight: 600 }}>{r.Balance || 0}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-            {staffData.length > 0 && (
-              <tfoot style={{ backgroundColor: 'LightGray', fontWeight: 'bold' }}>
-                <tr>
-                  <td style={{ padding: '8px' }}></td>
-                  <td>Total</td>
-                  <td>{totalBalance}</td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
-      </div>
+      <StatCard
+        title="Total Staff Outstanding Balance"
+        value={formatCurrency(totalBalance)}
+        icon={Users}
+        description="Aggregated net staff balances"
+        className="max-w-md"
+      />
 
-      <style jsx>{`
-        .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
-        @keyframes spin { to { transform: rotate(360deg) } }
-      `}</style>
+      <Card>
+        <CardContent className="p-4 flex items-center gap-3">
+          <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-auto" />
+          <Button onClick={() => loadStaffGrid(selectedDate)} isLoading={loading} leftIcon={<Search className="h-4 w-4" />}>
+            Find Balances
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Staff Accounts List ({staffData.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            columns={columns}
+            data={staffData}
+            isLoading={loading}
+            searchPlaceholder="Filter sub-user..."
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

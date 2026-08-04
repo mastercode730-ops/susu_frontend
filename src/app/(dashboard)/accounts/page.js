@@ -2,10 +2,19 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { IndianRupee, ArrowDownLeft, ArrowUpRight, Filter, Search, Calendar, User, FileText, CheckCircle2 } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent, StatCard } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Select } from '../../../components/ui/select';
+import { Button } from '../../../components/ui/button';
+import { DataTable } from '../../../components/tables/DataTable';
+import { LoadingSpinner } from '../../../components/ui/spinner';
+import { Badge } from '../../../components/ui/badge';
+import { formatCurrency } from '../../../lib/utils';
 
-// Format Date helpers
 function toApiDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
@@ -32,11 +41,9 @@ function toInputDate(apiDate) {
 export default function AccountsPage() {
   const router = useRouter();
 
-  // Authentication Context
   const [currentUser, setCurrentUser] = useState(null);
   const [isStaff, setIsStaff] = useState(false);
 
-  // Form State
   const [txDate, setTxDate] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
@@ -47,17 +54,13 @@ export default function AccountsPage() {
   const [narration, setNarration] = useState('');
   const [selectedStaffId, setSelectedStaffId] = useState('0');
 
-  // Customer/Staff metadata lists
   const [customers, setCustomers] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [customerBalance, setCustomerBalance] = useState(null);
   const [staffBalance, setStaffBalance] = useState(null);
 
-  // Mini History log
   const [miniHistory, setMiniHistory] = useState([]);
-  const [loadingMiniHistory, setLoadingMiniHistory] = useState(false);
 
-  // History Tab filters
   const [histParty, setHistParty] = useState('');
   const [histType, setHistType] = useState('');
   const [histFrom, setHistFrom] = useState('');
@@ -66,10 +69,8 @@ export default function AccountsPage() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [historyTotals, setHistoryTotals] = useState({ paid: 0, recv: 0, net: 0 });
 
-  // Refs for closing dropdowns
   const custFormWrapRef = useRef(null);
 
-  // Initialize
   useEffect(() => {
     fetchSessionUser();
     fetchLatestDate();
@@ -88,7 +89,7 @@ export default function AccountsPage() {
 
   const fetchSessionUser = async () => {
     try {
-      const r = await API.get('/api/auth/me');
+      const r = await API.get('/sapi/auth/me');
       if (r && r.user) {
         setCurrentUser(r.user);
         setIsStaff(!!r.user.SubUID);
@@ -103,7 +104,7 @@ export default function AccountsPage() {
 
   const fetchLatestDate = async () => {
     try {
-      const r = await API.get('/api/accounts/latest-date');
+      const r = await API.get('/sapi/accounts/latest-date');
       const today = new Date().toISOString().split('T')[0];
       if (r && r.success && r.data) {
         const fmt = toInputDate(r.data);
@@ -128,7 +129,7 @@ export default function AccountsPage() {
 
   const loadCustomerList = async () => {
     try {
-      const r = await API.get('/api/accounts/customers');
+      const r = await API.get('/sapi/accounts/customers');
       if (r && r.success) {
         const sorted = (r.data || []).sort((a, b) => (a.Name || '').localeCompare(b.Name || ''));
         const fullList = [{ UID: 'Self', Name: 'Self' }, ...sorted];
@@ -141,7 +142,7 @@ export default function AccountsPage() {
 
   const loadStaffList = async () => {
     try {
-      const r = await API.get('/api/accounts/subusers');
+      const r = await API.get('/sapi/accounts/subusers');
       if (r && r.success) {
         setStaffList(r.data || []);
       }
@@ -150,10 +151,9 @@ export default function AccountsPage() {
     }
   };
 
-  // Autocomplete filter customer input
   const getFilteredCustomers = () => {
     return customerSearchQuery
-      ? customers.filter(c => (c.Name || '').toLowerCase().includes(customerSearchQuery.toLowerCase()))
+      ? customers.filter((c) => (c.Name || '').toLowerCase().includes(customerSearchQuery.toLowerCase()))
       : customers;
   };
 
@@ -168,9 +168,8 @@ export default function AccountsPage() {
       return;
     }
 
-    // Fetch Net Balance
     try {
-      const r = await API.get(`/api/accounts/selected-balance?customerUID=${cust.UID}`);
+      const r = await API.get(`/sapi/accounts/selected-balance?customerUID=${cust.UID}`);
       if (r && r.success) {
         setCustomerBalance(parseFloat(r.balance || 0));
       }
@@ -178,7 +177,6 @@ export default function AccountsPage() {
       console.error(e);
     }
 
-    // Load recent mini logs
     fetchMiniHistory(cust.UID);
   };
 
@@ -190,13 +188,11 @@ export default function AccountsPage() {
     setShowCustDropdown(false);
   };
 
-  // Fetch compact client transactions list
   const fetchMiniHistory = async (cuid) => {
-    setLoadingMiniHistory(true);
     setMiniHistory([]);
     const today = new Date().toISOString().split('T')[0];
     try {
-      const r = await API.get(`/api/accounts/list?customerUID=${cuid}&fromDate=2000-01-01&toDate=${today}`);
+      const r = await API.get(`/sapi/accounts/list?customerUID=${cuid}&fromDate=2000-01-01&toDate=${today}`);
       if (r && r.success) {
         const list = r.data || [];
         list.sort((a, b) => new Date(b.Date) - new Date(a.Date));
@@ -204,12 +200,9 @@ export default function AccountsPage() {
       }
     } catch (e) {
       console.error(e);
-    } finally {
-      setLoadingMiniHistory(false);
     }
   };
 
-  // Fetch Subuser Credit Balance
   const fetchStaffBalance = async (sId) => {
     setSelectedStaffId(sId);
     if (!sId || sId === '0') {
@@ -218,9 +211,9 @@ export default function AccountsPage() {
     }
     const apiDate = toApiDate(txDate);
     try {
-      const r = await API.get(`/api/balance/staff-grid?date=${encodeURIComponent(apiDate)}`);
+      const r = await API.get(`/sapi/balance/staff-grid?date=${encodeURIComponent(apiDate)}`);
       if (r && r.success) {
-        const matched = (r.data || []).find(s => String(s.SubUserID) === String(sId));
+        const matched = (r.data || []).find((s) => String(s.SubUserID) === String(sId));
         if (matched) {
           setStaffBalance(parseFloat(matched.Balance || 0));
         } else {
@@ -233,7 +226,6 @@ export default function AccountsPage() {
     }
   };
 
-  // Save Transaction
   const handleSaveTransaction = async () => {
     if (!selectedCustomerId) {
       showToast('Please select customer', 'error');
@@ -251,15 +243,14 @@ export default function AccountsPage() {
       type: txType,
       amount: parsedAmount,
       narration: narration.trim(),
-      staffID: (txType === 'Paid' || txType === 'Received') ? (isStaff ? currentUser.SubUID : selectedStaffId) : '0'
+      staffID: txType === 'Paid' || txType === 'Received' ? (isStaff ? currentUser.SubUID : selectedStaffId) : '0',
     };
 
     try {
-      const r = await API.post('/api/accounts', payload);
+      const r = await API.post('/sapi/accounts', payload);
       if (r && r.success) {
-        showToast('Data Saved Successfully!');
+        showToast('Transaction saved successfully!');
         handleResetForm();
-        // Refresh grid history
         loadLedgerHistory(histFrom, histTo, histParty, histType);
       } else {
         showToast(r?.message || 'Error saving transaction', 'error');
@@ -282,18 +273,17 @@ export default function AccountsPage() {
     setMiniHistory([]);
   };
 
-  // Load right-hand audit grid history
   const loadLedgerHistory = async (start, end, partyUID, typeVal) => {
     setLoadingHistory(true);
     setHistoryRows([]);
     setHistoryTotals({ paid: 0, recv: 0, net: 0 });
 
     try {
-      const r = await API.get(`/api/accounts/list?fromDate=${start}&toDate=${end}&customerUID=${partyUID}`);
+      const r = await API.get(`/sapi/accounts/list?fromDate=${start}&toDate=${end}&customerUID=${partyUID}`);
       if (r && r.success) {
         let list = r.data || [];
         if (typeVal) {
-          list = list.filter(d => d.Type === typeVal);
+          list = list.filter((d) => d.Type === typeVal);
         }
         setHistoryRows(list);
 
@@ -302,7 +292,7 @@ export default function AccountsPage() {
         setHistoryTotals({
           paid: totalPaid,
           recv: totalRecv,
-          net: totalPaid - totalRecv
+          net: totalPaid - totalRecv,
         });
       }
     } catch (e) {
@@ -313,376 +303,236 @@ export default function AccountsPage() {
     }
   };
 
-  const handleSearchHistory = () => {
-    loadLedgerHistory(histFrom, histTo, histParty, histType);
-  };
+  const historyColumns = [
+    {
+      header: 'Date',
+      accessorKey: 'Date',
+      cell: ({ row }) => (
+        <span className="font-medium text-xs">
+          {row.original.Date ? new Date(row.original.Date).toLocaleDateString('en-GB') : '-'}
+        </span>
+      ),
+    },
+    {
+      header: 'Customer',
+      accessorKey: 'CustomerName',
+      cell: ({ row }) => (
+        <span className="font-bold text-xs capitalize text-slate-900 dark:text-white">
+          {row.original.CustomerName || '-'}
+        </span>
+      ),
+    },
+    {
+      header: 'Paid',
+      accessorKey: 'Paid',
+      cell: ({ row }) => {
+        const p = parseFloat(row.original.Paid) || 0;
+        return p > 0 ? (
+          <span className="font-bold text-xs text-rose-600 dark:text-rose-400">{formatCurrency(p)}</span>
+        ) : (
+          <span className="text-xs text-slate-400">-</span>
+        );
+      },
+    },
+    {
+      header: 'Received',
+      accessorKey: 'Received',
+      cell: ({ row }) => {
+        const r = parseFloat(row.original.Received) || 0;
+        return r > 0 ? (
+          <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400">{formatCurrency(r)}</span>
+        ) : (
+          <span className="text-xs text-slate-400">-</span>
+        );
+      },
+    },
+    {
+      header: 'Type',
+      accessorKey: 'Type',
+      cell: ({ row }) => <Badge variant="secondary">{row.original.Type}</Badge>,
+    },
+    {
+      header: 'Narration',
+      accessorKey: 'Narration',
+      cell: ({ row }) => <span className="text-xs text-slate-500">{row.original.Narration || '-'}</span>,
+    },
+    {
+      header: 'SubUser',
+      accessorKey: 'StaffName',
+      cell: ({ row }) => <span className="text-xs font-semibold">{row.original.StaffName || '-'}</span>,
+    },
+  ];
 
   return (
-    <div className="content">
-      <div className="row">
-        {/* Left Side: Receipt and Payments Entry Form */}
-        <div className="col-md-6" style={{ marginBottom: '20px' }}>
-          <div className="card">
-            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="card-title" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
-                Payment/Receipt
-              </div>
-              <button 
-                className="btn btn-success btn-sm font-weight-bold"
-                onClick={() => router.push('/show-transactions')}
-              >
-                P / R History &rarr;
-              </button>
-            </div>
-            <div className="card-body" style={{ padding: '14px' }}>
-              
-              {/* Date & Customer Row */}
-              <div className="row" style={{ marginBottom: '14px' }}>
-                <div className="col-md-6" style={{ marginBottom: '10px' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontWeight: 'bold' }}>Date</label>
-                    <input 
-                      type="date" 
-                      className="form-control" 
-                      value={txDate}
-                      onChange={(e) => setTxDate(e.target.value)}
+    <div className="space-y-6">
+      <PageHeader
+        title="Accounts & Payment Ledger"
+        description="Record cash payments, receipts, adjustments, and review ledger balances."
+      />
+
+      {/* Summary Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard
+          title="Total Paid"
+          value={formatCurrency(historyTotals.paid)}
+          icon={ArrowUpRight}
+          description="Outflow payments"
+        />
+        <StatCard
+          title="Total Received"
+          value={formatCurrency(historyTotals.recv)}
+          icon={ArrowDownLeft}
+          description="Inflow receipts"
+        />
+        <StatCard
+          title="Net Cashflow Balance"
+          value={formatCurrency(historyTotals.net)}
+          icon={IndianRupee}
+          trend={historyTotals.net >= 0 ? 'up' : 'down'}
+          change={historyTotals.net >= 0 ? 'Profit' : 'Deficit'}
+          description="Net ledger position"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Form Entry Card */}
+        <div className="lg:col-span-5">
+          <Card>
+            <CardHeader>
+              <CardTitle>Record Payment / Receipt</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Date"
+                  type="date"
+                  value={txDate}
+                  onChange={(e) => setTxDate(e.target.value)}
+                />
+
+                {/* Customer Autocomplete Input */}
+                <div className="space-y-1.5" ref={custFormWrapRef}>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    Customer Name
+                  </label>
+                  <div className="relative">
+                    <Input
+                      placeholder="Select Customer..."
+                      value={customerSearchQuery}
+                      onChange={(e) => {
+                        setCustomerSearchQuery(e.target.value);
+                        setShowCustDropdown(true);
+                      }}
+                      onFocus={() => setShowCustDropdown(true)}
                     />
-                  </div>
-                </div>
-                <div className="col-md-6" style={{ marginBottom: '10px' }}>
-                  <div className="form-group" style={{ margin: 0 }} ref={custFormWrapRef}>
-                    <label style={{ fontWeight: 'bold' }}>Customer Name</label>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="Select Customer"
-                        value={customerSearchQuery}
-                        onChange={(e) => {
-                          setCustomerSearchQuery(e.target.value);
-                          setShowCustDropdown(true);
-                        }}
-                        onFocus={() => setShowCustDropdown(true)}
-                      />
-                      {customerSearchQuery && (
-                        <button 
-                          onClick={handleClearCustomer}
-                          style={{ position: 'absolute', right: '10px', background: 'none', border: 'none', fontSize: '1.2rem', color: '#888', cursor: 'pointer' }}
-                        >
-                          &times;
-                        </button>
-                      )}
-                      {showCustDropdown && (
-                        <div 
-                          style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            right: 0,
-                            background: 'white',
-                            border: '1px solid #ced4da',
-                            borderRadius: '4px',
-                            maxHeight: '200px',
-                            overflowY: 'auto',
-                            zIndex: 9999,
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
-                          }}
-                        >
-                          {getFilteredCustomers().map((c, idx) => (
-                            <div 
-                              key={c.UID || idx}
-                              onMouseDown={() => handleSelectCustomer(c)}
-                              style={{
-                                padding: '8px 12px',
-                                cursor: 'pointer',
-                                fontSize: '0.9rem',
-                                borderBottom: '1px solid #eee'
-                              }}
-                            >
-                              {c.Name}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    {customerBalance !== null && (
-                      <div 
-                        className="net-bal" 
-                        style={{
-                          fontWeight: 'bold', 
-                          marginTop: '6px', 
-                          fontSize: '0.86rem', 
-                          color: customerBalance < 0 ? 'red' : 'green' 
-                        }}
-                      >
-                        Net Bal: {customerBalance.toLocaleString('en-IN')}
+                    {showCustDropdown && (
+                      <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+                        {getFilteredCustomers().map((c, idx) => (
+                          <div
+                            key={c.UID || idx}
+                            onMouseDown={() => handleSelectCustomer(c)}
+                            className="px-3 py-2 text-xs font-medium cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100"
+                          >
+                            {c.Name}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
+                  {customerBalance !== null && (
+                    <p className={`text-xs font-bold ${customerBalance < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                      Net Bal: {formatCurrency(customerBalance)}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Mini history for selected customer */}
-              {miniHistory.length > 0 && (
-                <div className="row" style={{ marginBottom: '14px' }}>
-                  <div className="col-md-12">
-                    <label style={{ fontWeight: 'bold', fontSize: '0.8rem', color: 'var(--muted)' }}>Recent Transactions</label>
-                    <div className="table-responsive" style={{ maxHeight: '130px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '4px' }}>
-                      <table className="table-bordered-bd-primary" style={{ width: '100%', fontSize: '0.72rem', textAlign: 'center', textTransform: 'capitalize' }}>
-                        <thead>
-                          <tr style={{ backgroundColor: 'LightGray' }}>
-                            <th style={{ padding: '4px' }}>Date</th>
-                            <th>Paid</th>
-                            <th>Received</th>
-                            <th>Narration</th>
-                            <th>Type</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {miniHistory.map((h, idx) => (
-                            <tr key={idx}>
-                              <td style={{ padding: '4px' }}>{h.Date ? new Date(h.Date).toLocaleDateString('en-GB') : ''}</td>
-                              <td style={{ fontWeight: 600 }}>{h.Paid || 0}</td>
-                              <td style={{ fontWeight: 600 }}>{h.Received || 0}</td>
-                              <td style={{ textAlign: 'left', paddingLeft: '6px', textTransform: 'none' }}>{h.Narration || ''}</td>
-                              <td>{h.Type || ''}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Select label="Type" value={txType} onChange={(e) => setTxType(e.target.value)}>
+                  <option value="Paid">Paid</option>
+                  <option value="Received">Received</option>
+                  <option value="Paid Adjustment">Paid Adjustment</option>
+                  <option value="Receive Adjustment">Receive Adjustment</option>
+                  <option value="Commission">Commission</option>
+                </Select>
 
-              {/* Type & Amount Row */}
-              <div className="row" style={{ marginBottom: '14px' }}>
-                <div className="col-md-6" style={{ marginBottom: '10px' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontWeight: 'bold' }}>Type</label>
-                    <select 
-                      className="form-control"
-                      value={txType}
-                      onChange={(e) => setTxType(e.target.value)}
-                    >
-                      <option value="Paid">Paid</option>
-                      <option value="Received">Received</option>
-                      <option value="Paid Adjustment">Paid Adjustment</option>
-                      <option value="Receive Adjustment">Receive Adjustment</option>
-                      <option value="Commission">Commission</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="col-md-6" style={{ marginBottom: '10px' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontWeight: 'bold' }}>Amount</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      placeholder="Enter Amount"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))}
-                    />
-                  </div>
-                </div>
+                <Input
+                  label="Amount (₹)"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))}
+                />
               </div>
 
-              {/* Narration & Sub User Row */}
-              <div className="row" style={{ marginBottom: '14px' }}>
-                <div className="col-md-6" style={{ marginBottom: '10px' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontWeight: 'bold' }}>Narration</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      placeholder="Add note..."
-                      value={narration}
-                      onChange={(e) => setNarration(e.target.value)}
-                    />
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Narration / Note"
+                  placeholder="Add note..."
+                  value={narration}
+                  onChange={(e) => setNarration(e.target.value)}
+                />
                 {!isStaff && (
-                  <div className="col-md-6" style={{ marginBottom: '10px' }}>
-                    <div className="form-group" style={{ margin: 0 }}>
-                      <label style={{ fontWeight: 'bold' }}>Sub User</label>
-                      <select 
-                        className="form-control"
-                        value={selectedStaffId}
-                        onChange={(e) => fetchStaffBalance(e.target.value)}
-                      >
-                        <option value="0">Self</option>
-                        {staffList.map(s => (
-                          <option key={s.SubUserID} value={s.SubUserID}>{s.subusername}</option>
-                        ))}
-                      </select>
-                      {staffBalance !== null && (
-                        <div 
-                          className="net-bal" 
-                          style={{
-                            fontWeight: 'bold', 
-                            marginTop: '6px', 
-                            fontSize: '0.86rem', 
-                            color: staffBalance < 0 ? 'red' : 'green' 
-                          }}
-                        >
-                          Net Bal: {staffBalance.toLocaleString('en-IN')}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <Select label="Sub User" value={selectedStaffId} onChange={(e) => fetchStaffBalance(e.target.value)}>
+                    <option value="0">Self</option>
+                    {staffList.map((s) => (
+                      <option key={s.SubUserID} value={s.SubUserID}>
+                        {s.subusername}
+                      </option>
+                    ))}
+                  </Select>
                 )}
               </div>
 
-              {/* Buttons */}
-              <div className="row" style={{ marginTop: '20px' }}>
-                <div className="col-md-12">
-                  <button className="btn btn-success" onClick={handleSaveTransaction}>
-                    Submit
-                  </button>
-                  <button className="btn btn-danger" style={{ marginLeft: '10px' }} onClick={handleResetForm}>
-                    Cancel
-                  </button>
-                </div>
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <Button className="flex-1" onClick={handleSaveTransaction} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+                  SUBMIT ENTRY
+                </Button>
+                <Button variant="outline" onClick={handleResetForm}>
+                  Reset
+                </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Right Side: Transaction Ledger History Audit Log */}
-        <div className="col-md-6">
-          <div className="card">
-            <div className="card-header" style={{ padding: '12px 14px' }}>
-              <div className="card-title" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>History</div>
-            </div>
-            <div className="card-body" style={{ padding: '14px' }}>
-              {/* Filters */}
-              <div className="row" style={{ marginBottom: '12px' }}>
-                <div className="col-md-6" style={{ marginBottom: '8px' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontWeight: 'bold' }}>Party</label>
-                    <select 
-                      className="form-control"
-                      value={histParty}
-                      onChange={(e) => setHistParty(e.target.value)}
-                    >
-                      <option value="">All Customers</option>
-                      {customers.filter(c => c.UID !== 'Self').map(c => (
-                        <option key={c.UID} value={c.UID}>{c.Name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="col-md-6" style={{ marginBottom: '8px' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontWeight: 'bold' }}>Type</label>
-                    <select 
-                      className="form-control"
-                      value={histType}
-                      onChange={(e) => setHistType(e.target.value)}
-                    >
-                      <option value="">All</option>
-                      <option value="Paid">Paid</option>
-                      <option value="Received">Received</option>
-                      <option value="Paid Adjustment">Paid Adjustment</option>
-                      <option value="Receive Adjustment">Receive Adjustment</option>
-                      <option value="Commission">Commission</option>
-                    </select>
-                  </div>
-                </div>
+        {/* Right Ledger Audit Log Card */}
+        <div className="lg:col-span-7">
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <CardTitle>Accounts Ledger Audit</CardTitle>
+              <div className="flex flex-wrap items-center gap-2">
+                <Select value={histParty} onChange={(e) => setHistParty(e.target.value)} className="w-auto">
+                  <option value="">All Customers</option>
+                  {customers.filter((c) => c.UID !== 'Self').map((c) => (
+                    <option key={c.UID} value={c.UID}>
+                      {c.Name}
+                    </option>
+                  ))}
+                </Select>
+                <Select value={histType} onChange={(e) => setHistType(e.target.value)} className="w-auto">
+                  <option value="">All Types</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Received">Received</option>
+                  <option value="Paid Adjustment">Paid Adjustment</option>
+                  <option value="Receive Adjustment">Receive Adjustment</option>
+                  <option value="Commission">Commission</option>
+                </Select>
+                <Button onClick={() => loadLedgerHistory(histFrom, histTo, histParty, histType)}>
+                  Filter
+                </Button>
               </div>
-
-              <div className="row" style={{ marginBottom: '14px', display: 'flex', alignItems: 'flex-end' }}>
-                <div className="col-md-5" style={{ marginBottom: '8px' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontWeight: 'bold' }}>From</label>
-                    <input 
-                      type="date" 
-                      className="form-control" 
-                      value={histFrom}
-                      onChange={(e) => setHistFrom(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-5" style={{ marginBottom: '8px' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontWeight: 'bold' }}>To</label>
-                    <input 
-                      type="date" 
-                      className="form-control" 
-                      value={histTo}
-                      onChange={(e) => setHistTo(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-2" style={{ marginBottom: '8px' }}>
-                  <button className="btn btn-primary btn-block" onClick={handleSearchHistory} disabled={loadingHistory}>
-                    Show
-                  </button>
-                </div>
-              </div>
-
-              {/* Result grid table */}
-              <div className="table-responsive" style={{ maxHeight: '420px', overflowY: 'auto', border: '1px solid #ced4da', borderRadius: '8px' }}>
-                <table className="table-bordered-bd-primary table-hover" style={{ textTransform: 'capitalize', textAlign: 'center', width: '100%', fontSize: '0.82rem' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: 'LightGray' }}>
-                      <th style={{ padding: '8px' }}>Date</th>
-                      <th>Customer</th>
-                      <th>Paid</th>
-                      <th>Received</th>
-                      <th>Type</th>
-                      <th style={{ textAlign: 'left', paddingLeft: '8px' }}>Narration</th>
-                      <th>SubUser</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loadingHistory ? (
-                      <tr>
-                        <td colSpan={7} style={{ padding: '20px', color: 'var(--muted)' }}>
-                          <span className="spin"></span> Loading accounts history...
-                        </td>
-                      </tr>
-                    ) : historyRows.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} style={{ padding: '20px', color: 'var(--muted)' }}>
-                          No transactions found.
-                        </td>
-                      </tr>
-                    ) : (
-                      historyRows.map((d, i) => (
-                        <tr key={i}>
-                          <td style={{ padding: '6px' }}>{d.Date ? new Date(d.Date).toLocaleDateString('en-GB') : ''}</td>
-                          <td style={{ fontWeight: 'bold' }}>{d.CustomerName || ''}</td>
-                          <td style={{ fontWeight: 600 }}>{d.Paid || 0}</td>
-                          <td style={{ fontWeight: 600 }}>{d.Received || 0}</td>
-                          <td>{d.Type || ''}</td>
-                          <td style={{ textAlign: 'left', paddingLeft: '8px', textTransform: 'none' }}>{d.Narration || ''}</td>
-                          <td>{d.StaffName || ''}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                  {historyRows.length > 0 && (
-                    <tfoot style={{ backgroundColor: 'LightGray', fontWeight: 'bold' }}>
-                      <tr>
-                        <td style={{ padding: '8px' }} colSpan={2}>Total ({historyRows.length})</td>
-                        <td>₹{historyTotals.paid.toFixed(0)}</td>
-                        <td>₹{historyTotals.recv.toFixed(0)}</td>
-                        <td colSpan={3} style={{ textAlign: 'left', paddingLeft: '10px' }}>Net: ₹{historyTotals.net.toFixed(0)}</td>
-                      </tr>
-                    </tfoot>
-                  )}
-                </table>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <DataTable
+                columns={historyColumns}
+                data={historyRows}
+                isLoading={loadingHistory}
+                searchPlaceholder="Search history notes or customer..."
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      <style jsx>{`
-        .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
-        @keyframes spin { to { transform: rotate(360deg) } }
-      `}</style>
     </div>
   );
 }

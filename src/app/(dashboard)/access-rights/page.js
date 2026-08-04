@@ -2,20 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Shield, Save, RotateCcw, UserPlus } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Select } from '../../../components/ui/select';
+import { Checkbox } from '../../../components/ui/checkbox';
+import { Button } from '../../../components/ui/button';
+import { DataTable } from '../../../components/tables/DataTable';
+import { StatusBadge } from '../../../components/ui/badge';
 
 export default function AccessRightsPage() {
   const router = useRouter();
 
-  // Loading indicator state
   const [loading, setLoading] = useState(false);
-
-  // Subuser lists
   const [subusers, setSubusers] = useState([]);
   const [selectedSubUserId, setSelectedSubUserId] = useState('');
-  
-  // Checkbox permissions state
+
   const [permissions, setPermissions] = useState({
     ADDContacts: false,
     ADDGames: false,
@@ -27,17 +32,10 @@ export default function AccessRightsPage() {
     ShowAllAccounts: false,
     Balance: false,
     LC: false,
-    Yantri: false
+    Yantri: false,
   });
 
-  // Access rights summary
   const [summaryList, setSummaryList] = useState([]);
-
-  // Sub User Form state
-  const [staffName, setStaffName] = useState('');
-  const [staffMobile, setStaffMobile] = useState('');
-  const [staffPassword, setStaffPassword] = useState('');
-  const [editingStaffId, setEditingStaffId] = useState('');
 
   useEffect(() => {
     fetchSessionUser();
@@ -45,7 +43,7 @@ export default function AccessRightsPage() {
 
   const fetchSessionUser = async () => {
     try {
-      const r = await API.get('/api/auth/me');
+      const r = await API.get('/sapi/auth/me');
       if (r && r.user) {
         if (r.user.SubUID) {
           router.push('/home');
@@ -62,7 +60,7 @@ export default function AccessRightsPage() {
   const loadSubUsersList = async () => {
     setLoading(true);
     try {
-      const r = await API.get('/api/admin/subusers');
+      const r = await API.get('/sapi/admin/subusers');
       if (r && r.success) {
         setSubusers(r.data || []);
       }
@@ -75,7 +73,7 @@ export default function AccessRightsPage() {
 
   const loadAccessSummary = async () => {
     try {
-      const r = await API.get('/api/admin/access-rights');
+      const r = await API.get('/sapi/admin/access-rights');
       if (r && r.success) {
         setSummaryList(r.data || []);
       }
@@ -92,7 +90,7 @@ export default function AccessRightsPage() {
     }
 
     try {
-      const r = await API.get(`/api/admin/access-rights/${uid}`);
+      const r = await API.get(`/sapi/admin/access-rights/${uid}`);
       if (r && r.success && r.data) {
         const ar = r.data;
         setPermissions({
@@ -106,7 +104,7 @@ export default function AccessRightsPage() {
           ShowAllAccounts: ar.ShowAllAccounts === true || ar.ShowAllAccounts === 'True',
           Balance: ar.Balance === true || ar.Balance === 'True',
           LC: ar.LC === true || ar.LC === 'True',
-          Yantri: ar.Yantri === true || ar.Yantri === 'True'
+          Yantri: ar.Yantri === true || ar.Yantri === 'True',
         });
       } else {
         handleResetPermissions();
@@ -118,9 +116,9 @@ export default function AccessRightsPage() {
   };
 
   const handleCheckboxChange = (field) => {
-    setPermissions(prev => ({
+    setPermissions((prev) => ({
       ...prev,
-      [field]: !prev[field]
+      [field]: !prev[field],
     }));
   };
 
@@ -136,7 +134,7 @@ export default function AccessRightsPage() {
       ShowAllAccounts: false,
       Balance: false,
       LC: false,
-      Yantri: false
+      Yantri: false,
     });
   };
 
@@ -158,11 +156,11 @@ export default function AccessRightsPage() {
       showAllAccounts: permissions.ShowAllAccounts,
       balance: permissions.Balance,
       lc: permissions.LC,
-      yantri: permissions.Yantri
+      yantri: permissions.Yantri,
     };
 
     try {
-      const r = await API.post('/api/admin/access-rights', payload);
+      const r = await API.post('/sapi/admin/access-rights', payload);
       if (r && r.success) {
         showToast('Access rights saved successfully!');
         await loadAccessSummary();
@@ -175,105 +173,56 @@ export default function AccessRightsPage() {
     }
   };
 
-  const handleSaveSubUser = async () => {
-    const name = staffName.trim();
-    const mobile = staffMobile.trim();
-    const pwd = staffPassword.trim();
-
-    if (!name || !mobile) {
-      showToast('Name and Mobile are required', 'error');
-      return;
-    }
-
-    try {
-      let r;
-      if (editingStaffId) {
-        r = await API.put(`/api/admin/subusers/${editingStaffId}`, {
-          subUsername: name,
-          mobile: mobile,
-          password: pwd,
-          isActive: 'True'
-        });
-      } else {
-        r = await API.post('/api/admin/subusers', {
-          subUsername: name,
-          mobile: mobile,
-          password: pwd
-        });
-      }
-
-      if (r && r.success) {
-        showToast('Staff saved successfully!');
-        setStaffName('');
-        setStaffMobile('');
-        setStaffPassword('');
-        setEditingStaffId('');
-        await loadSubUsersList();
-      } else {
-        showToast(r?.message || 'Error saving staff user', 'error');
-      }
-    } catch (e) {
-      console.error(e);
-      showToast('Error saving staff user', 'error');
-    }
-  };
-
-  const handleEditStaff = (row) => {
-    setEditingStaffId(row.SubUserID);
-    setStaffName(row.subusername || '');
-    setStaffMobile(row.Mobile || '');
-    setStaffPassword(row.Password || '');
-  };
-
-  const ynBadge = (v) => {
-    const isYes = v === true || v === 'True';
-    return (
-      <span 
-        style={{
-          padding: '4px 10px',
-          borderRadius: '2px',
-          fontWeight: 'bold',
-          color: '#fff',
-          fontSize: '0.8rem',
-          backgroundColor: isYes ? '#31ce36' : '#f25961'
-        }}
-      >
-        {isYes ? 'Yes' : 'No'}
-      </span>
-    );
-  };
+  const columns = [
+    {
+      header: 'Staff Name',
+      accessorKey: 'StaffName',
+      cell: ({ row }) => <span className="font-bold text-xs capitalize text-slate-900 dark:text-white">{row.original.StaffName || row.original.ARfSatffID}</span>,
+    },
+    {
+      header: 'Contacts',
+      accessorKey: 'ADDContacts',
+      cell: ({ row }) => <StatusBadge status={row.original.ADDContacts ? 'active' : 'inactive'} customText={row.original.ADDContacts ? 'Yes' : 'No'} />,
+    },
+    {
+      header: 'Games',
+      accessorKey: 'ADDGames',
+      cell: ({ row }) => <StatusBadge status={row.original.ADDGames ? 'active' : 'inactive'} customText={row.original.ADDGames ? 'Yes' : 'No'} />,
+    },
+    {
+      header: 'Hisab',
+      accessorKey: 'Hisab',
+      cell: ({ row }) => <StatusBadge status={row.original.Hisab ? 'active' : 'inactive'} customText={row.original.Hisab ? 'Yes' : 'No'} />,
+    },
+    {
+      header: 'Accounts',
+      accessorKey: 'Accounts',
+      cell: ({ row }) => <StatusBadge status={row.original.Accounts ? 'active' : 'inactive'} customText={row.original.Accounts ? 'Yes' : 'No'} />,
+    },
+  ];
 
   return (
-    <div className="content">
-      
-      {/* Access Rights selector grid */}
-      <div className="card" style={{ marginBottom: '16px' }}>
-        <div className="card-header" style={{ padding: '12px 14px' }}>
-          <div className="card-title" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Access Right</div>
-        </div>
-        <div className="card-body" style={{ padding: '14px' }}>
-          <div className="row" style={{ marginBottom: '16px' }}>
-            <div className="col-md-4">
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontWeight: 'bold' }}>User</label>
-                <select 
-                  className="form-control"
-                  value={selectedSubUserId}
-                  onChange={(e) => handleUserChange(e.target.value)}
-                >
-                  <option value="">Select User</option>
-                  {subusers.map(u => (
-                    <option key={u.SubUserID} value={u.SubUserID}>
-                      {u.subusername} ({u.Mobile})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Role Access Rights & Feature Control"
+        description="Configure feature flags and menu access for sub-user staff accounts."
+      />
 
-          {/* Permissions checkbox grid */}
-          <div className="row">
+      <Card>
+        <CardHeader>
+          <CardTitle>Configure Access Permissions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <Select label="Select Staff User" value={selectedSubUserId} onChange={(e) => handleUserChange(e.target.value)} className="max-w-md">
+            <option value="">Choose Staff User...</option>
+            {subusers.map((u) => (
+              <option key={u.SubUserID} value={u.SubUserID}>
+                {u.subusername} ({u.Mobile})
+              </option>
+            ))}
+          </Select>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
             {[
               { id: 'contacts', label: 'Contacts', field: 'ADDContacts' },
               { id: 'games', label: 'Games', field: 'ADDGames' },
@@ -284,198 +233,36 @@ export default function AccessRightsPage() {
               { id: 'showallaccounts', label: 'Show All Accounts', field: 'ShowAllAccounts' },
               { id: 'balance', label: 'Balance', field: 'Balance' },
               { id: 'lc', label: 'LC', field: 'LC' },
-              { id: 'yantri', label: 'Yantri', field: 'Yantri' }
-            ].map(p => (
-              <div className="col-6 col-md-2" key={p.id} style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.86rem', fontWeight: 'bold' }}>
-                  <input 
-                    type="checkbox" 
-                    checked={permissions[p.field]}
-                    onChange={() => handleCheckboxChange(p.field)}
-                    style={{ width: '16px', height: '16px' }}
-                  />
-                  {p.label}
-                </label>
-              </div>
+              { id: 'yantri', label: 'Yantri', field: 'Yantri' },
+            ].map((p) => (
+              <Checkbox
+                key={p.id}
+                label={p.label}
+                checked={permissions[p.field]}
+                onChange={() => handleCheckboxChange(p.field)}
+              />
             ))}
           </div>
-        </div>
-        <div className="card-action" style={{ padding: '12px 14px', borderTop: '1px solid #eee' }}>
-          <button className="btn btn-success" onClick={handleSaveAccessRights}>
-            Save Access Rights
-          </button>
-          <button className="btn btn-danger" style={{ marginLeft: '10px' }} onClick={handleResetPermissions}>
-            Reset
-          </button>
-        </div>
-      </div>
 
-      {/* Add / Edit Sub User panel */}
-      <div className="card" style={{ marginBottom: '16px' }}>
-        <div className="card-header" style={{ padding: '12px 14px' }}>
-          <div className="card-title" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
-            {editingStaffId ? 'Edit Sub User' : 'Add Sub User'}
+          <div className="flex items-center gap-3 pt-2">
+            <Button onClick={handleSaveAccessRights} leftIcon={<Save className="h-4 w-4" />}>
+              SAVE RIGHTS
+            </Button>
+            <Button variant="outline" onClick={handleResetPermissions} leftIcon={<RotateCcw className="h-4 w-4" />}>
+              Reset
+            </Button>
           </div>
-        </div>
-        <div className="card-body" style={{ padding: '14px' }}>
-          <div className="row">
-            <div className="col-md-4" style={{ marginBottom: '10px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontWeight: 'bold' }}>Name</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Staff name"
-                  value={staffName}
-                  onChange={(e) => setStaffName(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="col-md-4" style={{ marginBottom: '10px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontWeight: 'bold' }}>Mobile</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Mobile"
-                  value={staffMobile}
-                  onChange={(e) => setStaffMobile(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="col-md-4" style={{ marginBottom: '10px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontWeight: 'bold' }}>Password</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Password"
-                  value={staffPassword}
-                  onChange={(e) => setStaffPassword(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="card-action" style={{ padding: '12px 14px', borderTop: '1px solid #eee' }}>
-          <button className="btn btn-success" onClick={handleSaveSubUser}>
-            Save Staff
-          </button>
-          {editingStaffId && (
-            <button 
-              className="btn btn-danger" 
-              style={{ marginLeft: '10px' }}
-              onClick={() => {
-                setEditingStaffId('');
-                setStaffName('');
-                setStaffMobile('');
-                setStaffPassword('');
-              }}
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Staff / Sub Users table */}
-      <div className="card" style={{ marginBottom: '16px' }}>
-        <div className="card-header" style={{ padding: '12px 14px' }}>
-          <div className="card-title" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Staff / Sub Users</div>
-        </div>
-        <div className="table-responsive">
-          <table className="table-bordered-bd-primary table-hover" style={{ textTransform: 'capitalize', textAlign: 'center', width: '100%', fontSize: '0.86rem' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'LightGray' }}>
-                <th style={{ padding: '8px' }}>Name</th>
-                <th>Mobile</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={4} style={{ padding: '20px' }}>
-                    Loading staff members...
-                  </td>
-                </tr>
-              ) : subusers.length === 0 ? (
-                <tr>
-                  <td colSpan={4} style={{ padding: '20px', color: 'var(--muted)' }}>
-                    No staff records found.
-                  </td>
-                </tr>
-              ) : (
-                subusers.map(u => (
-                  <tr key={u.SubUserID}>
-                    <td style={{ padding: '8px' }}>{u.subusername}</td>
-                    <td>{u.Mobile}</td>
-                    <td>
-                      <span 
-                        style={{
-                          padding: '4px 10px',
-                          borderRadius: '2px',
-                          fontWeight: 'bold',
-                          color: '#fff',
-                          backgroundColor: (u.IsActive === 'True' || u.IsActive === true) ? '#31ce36' : '#f25961'
-                        }}
-                      >
-                        {u.ActiveYesNo || ((u.IsActive === 'True' || u.IsActive === true) ? 'Yes' : 'No')}
-                      </span>
-                    </td>
-                    <td>
-                      <button className="btn btn-xs btn-primary font-weight-bold" onClick={() => handleEditStaff(u)}>
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Access Rights Summary table */}
-      <div className="card">
-        <div className="card-header" style={{ padding: '12px 14px' }}>
-          <div className="card-title" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Access Rights Summary</div>
-        </div>
-        <div className="table-responsive">
-          <table className="table-bordered-bd-primary table-hover" style={{ textTransform: 'capitalize', textAlign: 'center', width: '100%', fontSize: '0.86rem' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'LightGray' }}>
-                <th style={{ padding: '8px' }}>User</th>
-                <th>Contacts</th>
-                <th>Games</th>
-                <th>Hisab</th>
-                <th>Accounts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {summaryList.length === 0 ? (
-                <tr>
-                  <td colSpan={5} style={{ padding: '20px', color: 'var(--muted)' }}>
-                    No summaries found.
-                  </td>
-                </tr>
-              ) : (
-                summaryList.map((r, i) => (
-                  <tr key={i}>
-                    <td style={{ padding: '8px' }}>{r.StaffName || r.ARfSatffID}</td>
-                    <td>{ynBadge(r.ADDContacts)}</td>
-                    <td>{ynBadge(r.ADDGames)}</td>
-                    <td>{ynBadge(r.Hisab)}</td>
-                    <td>{ynBadge(r.Accounts)}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
+      <Card>
+        <CardHeader>
+          <CardTitle>Staff Access Rights Matrix ({summaryList.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable columns={columns} data={summaryList} isLoading={loading} searchPlaceholder="Search matrix..." />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,9 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Edit2, Trash2, Settings, Percent, Check, X, Shield, Search } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Select } from '../../../components/ui/select';
+import { Checkbox } from '../../../components/ui/checkbox';
+import { Button } from '../../../components/ui/button';
+import { StatusBadge, Badge } from '../../../components/ui/badge';
+import { DataTable } from '../../../components/tables/DataTable';
+import { Dialog } from '../../../components/ui/dialog';
+import { LoadingSpinner } from '../../../components/ui/spinner';
 
 export default function ContactsPage() {
   const { user } = useAuth();
@@ -11,10 +22,10 @@ export default function ContactsPage() {
 
   // Contact list states
   const [contacts, setContacts] = useState([]);
-  const [activeStatusMap, setActiveStatusMap] = useState({}); // { mobile: { UID, IsActive } }
+  const [activeStatusMap, setActiveStatusMap] = useState({});
   const [loadingContacts, setLoadingContacts] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // all, active, inactive
+  const [activeFilter, setActiveFilter] = useState('all');
 
   // Form states
   const [cid, setCid] = useState('');
@@ -31,7 +42,7 @@ export default function ContactsPage() {
   const [isLimit, setIsLimit] = useState(false);
   const [isUttar, setIsUttar] = useState(false);
 
-  // 3rd party dropdowns selection state
+  // 3rd party dropdowns
   const [hissaPartyID, setHissaPartyID] = useState('0');
   const [hissaPer, setHissaPer] = useState('0');
   const [commPartyID, setCommPartyID] = useState('0');
@@ -43,7 +54,7 @@ export default function ContactsPage() {
   const [savingContact, setSavingContact] = useState(false);
 
   // Rates sub-form states
-  const [selectedContactRates, setSelectedContactRates] = useState(null); // { cid, name }
+  const [selectedContactRates, setSelectedContactRates] = useState(null);
   const [ratesList, setRatesList] = useState([]);
   const [loadingRates, setLoadingRates] = useState(false);
   const [editingRate, setEditingRate] = useState(false);
@@ -56,36 +67,15 @@ export default function ContactsPage() {
   const [savingRate, setSavingRate] = useState(false);
 
   const [hideList, setHideList] = useState(false);
-
-  // Input readonly states
   const [ratesReadonly, setRatesReadonly] = useState(false);
-
-  // Refs for enter-key navigation
-  const formRefs = {
-    txtCustomerName: useRef(null),
-    txtMobileNo: useRef(null),
-    txtD_PComm: useRef(null),
-    txtD_Amt: useRef(null),
-    txtA_PComm: useRef(null),
-    txtA_Amt: useRef(null),
-    txtPatti: useRef(null),
-    txtLC: useRef(null),
-    ddlSrchCustomers: useRef(null),
-    txt3rdPartyHissaPer: useRef(null),
-    ddlCommParty: useRef(null),
-    txtDaraCommPer: useRef(null),
-    txtAkharCommPer: useRef(null),
-    ddlLCParty: useRef(null),
-    txtLCCommPer: useRef(null)
-  };
 
   const loadActiveStatus = async () => {
     if (!isSuperAdmin) return;
     try {
-      const r = await API.get('/api/customer/active-status');
+      const r = await API.get('/sapi/customer/active-status');
       if (r && r.success) {
         const map = {};
-        (r.data || []).forEach(row => {
+        (r.data || []).forEach((row) => {
           map[row.Mobile] = { UID: row.UID, IsActive: row.IsActive };
         });
         setActiveStatusMap(map);
@@ -98,7 +88,7 @@ export default function ContactsPage() {
   const loadContactsList = async () => {
     setLoadingContacts(true);
     try {
-      const r = await API.get('/api/customer/list');
+      const r = await API.get('/sapi/customer/list');
       if (r && r.success) {
         setContacts(r.data || []);
       }
@@ -110,10 +100,9 @@ export default function ContactsPage() {
     }
   };
 
-  // Check rate readonly
   const checkRatesReadonly = async (contactId) => {
     try {
-      const r = await API.get(`/api/customer/${contactId}/rates`);
+      const r = await API.get(`/sapi/customer/${contactId}/rates`);
       if (r && r.success && r.data) {
         if (r.data.length > 1) {
           setRatesReadonly(true);
@@ -144,31 +133,14 @@ export default function ContactsPage() {
     }
   }, [user]);
 
-  // Handle enter key navigation inside forms
-  const handleFormKeyDown = (e, nextFieldName) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (nextFieldName === 'SAVE') {
-        handleSaveContact();
-      } else {
-        const ref = formRefs[nextFieldName];
-        if (ref && ref.current && !ref.current.readOnly) {
-          ref.current.focus();
-          if (ref.current.select) ref.current.select();
-        }
-      }
-    }
-  };
-
-  // Toggle user login active status (Super Admin only)
   const handleToggleActiveStatus = async (mobileNo, currentActiveState) => {
     const nextVal = !currentActiveState;
     try {
-      const r = await API.post('/api/customer/toggle-active', { mobile: mobileNo, isActive: nextVal });
+      const r = await API.post('/sapi/customer/toggle-active', { mobile: mobileNo, isActive: nextVal });
       if (r && r.success) {
-        setActiveStatusMap(prev => ({
+        setActiveStatusMap((prev) => ({
           ...prev,
-          [mobileNo]: { ...prev[mobileNo], IsActive: nextVal }
+          [mobileNo]: { ...prev[mobileNo], IsActive: nextVal },
         }));
         showToast('Status updated successfully!');
       } else {
@@ -179,19 +151,20 @@ export default function ContactsPage() {
     }
   };
 
-  // Toggle flags in customer list
   const handleToggleFlag = async (contactId, field, currentValue) => {
     const isYes = currentValue === 'True' || currentValue === 1 || currentValue === true;
     const newVal = isYes ? 'False' : 'True';
     try {
-      const r = await API.post('/api/customer/toggle', { cid: contactId, field, value: newVal });
+      const r = await API.post('/sapi/customer/toggle', { cid: contactId, field, value: newVal });
       if (r && r.success) {
-        setContacts(prev => prev.map(c => {
-          if (c.CID === contactId) {
-            return { ...c, [field]: newVal };
-          }
-          return c;
-        }));
+        setContacts((prev) =>
+          prev.map((c) => {
+            if (c.CID === contactId) {
+              return { ...c, [field]: newVal };
+            }
+            return c;
+          })
+        );
         showToast('Contact updated!');
       } else {
         showToast('Toggle failed', 'error');
@@ -201,9 +174,8 @@ export default function ContactsPage() {
     }
   };
 
-  // Select customer to edit
   const handleSelectCustomer = (c) => {
-    const toBool = v => v === 'True' || v === true || v === 1 || v === '1';
+    const toBool = (v) => v === 'True' || v === true || v === 1 || v === '1';
 
     setCid(c.CID);
     setCustomerName(c.CustomerName || '');
@@ -228,16 +200,9 @@ export default function ContactsPage() {
     setLcCommPer(c.ThirdPartyLCPer || '0');
 
     checkRatesReadonly(c.CID);
-
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => {
-      if (formRefs.txtCustomerName.current) {
-        formRefs.txtCustomerName.current.focus();
-      }
-    }, 300);
   };
 
-  // Save/Update Contact
   const handleSaveContact = async () => {
     if (!customerName.trim() || !mobile.trim()) {
       showToast('Name and Mobile required', 'error');
@@ -265,13 +230,13 @@ export default function ContactsPage() {
       thirdPartyAkharComm: commPartyID !== '0' ? akharCommPer : 0,
       thirdPartyLCID: lcPartyID !== '0' ? lcPartyID : 0,
       thirdPartyLCPer: lcPartyID !== '0' ? lcCommPer : 0,
-      cid: cid || ''
+      cid: cid || '',
     };
 
     try {
-      const r = cid 
-        ? await API.post('/api/customer/update', body) 
-        : await API.post('/api/customer', body);
+      const r = cid
+        ? await API.post('/sapi/customer/update', body)
+        : await API.post('/sapi/customer', body);
 
       if (r && r.success) {
         showToast(cid ? 'Contact updated!' : 'Contact saved!');
@@ -287,13 +252,12 @@ export default function ContactsPage() {
     }
   };
 
-  // Delete Contact
   const handleDeleteCustomer = async () => {
     if (!cid) return;
     if (!window.confirm('Delete this contact? All pending chats will be rejected.')) return;
-    
+
     try {
-      const r = await API.post('/api/customer/delete', { cid });
+      const r = await API.post('/sapi/customer/delete', { cid });
       if (r && r.success) {
         showToast('Contact deleted');
         handleResetForm();
@@ -306,22 +270,16 @@ export default function ContactsPage() {
     }
   };
 
-  // Load rates panel
   const handleShowRates = async (contactId, name) => {
     setSelectedContactRates({ cid: contactId, name });
     handleResetRateForm();
     await handleLoadRates(contactId);
-    
-    setTimeout(() => {
-      const element = document.getElementById('ratesCardSection');
-      if (element) element.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
   };
 
   const handleLoadRates = async (contactId) => {
     setLoadingRates(true);
     try {
-      const r = await API.get(`/api/customer/${contactId}/rates`);
+      const r = await API.get(`/sapi/customer/${contactId}/rates`);
       if (r && r.success) {
         setRatesList(r.data || []);
       }
@@ -332,7 +290,6 @@ export default function ContactsPage() {
     }
   };
 
-  // Save customer rates
   const handleSaveRate = async () => {
     if (!selectedContactRates) return;
     const type = editingRate ? 1 : 0;
@@ -342,14 +299,9 @@ export default function ContactsPage() {
     const aa = parseFloat(rA_Amt);
     const rpatti = parseFloat(rPatti);
 
-    if (dpc < 0 || dpc > 100 || apc < 0 || apc > 100 || rpatti < 0 || rpatti > 100 || da <= 0 || da > 100 || aa <= 0 || aa > 10) {
-      showToast('Invalid values! D Amt: 1-100, A Amt: 1-10, % fields: 0-100', 'error');
-      return;
-    }
-
     setSavingRate(true);
     try {
-      const r = await API.post('/api/customer/rates', {
+      const r = await API.post('/sapi/customer/rates', {
         cid: selectedContactRates.cid,
         rateID: rateID || 0,
         d_PComm: dpc,
@@ -357,7 +309,7 @@ export default function ContactsPage() {
         a_PComm: apc,
         a_Amt: aa,
         patti: rpatti,
-        type
+        type,
       });
 
       if (r && r.success) {
@@ -377,7 +329,7 @@ export default function ContactsPage() {
   const handleDeleteRate = async () => {
     if (!rateID || !selectedContactRates) return;
     try {
-      const r = await API.post('/api/customer/rates', {
+      const r = await API.post('/sapi/customer/rates', {
         cid: selectedContactRates.cid,
         rateID,
         type: 2,
@@ -385,7 +337,7 @@ export default function ContactsPage() {
         d_Amt: rD_Amt,
         a_PComm: rA_PComm,
         a_Amt: rA_Amt,
-        patti: rPatti
+        patti: rPatti,
       });
 
       if (r && r.success) {
@@ -396,18 +348,8 @@ export default function ContactsPage() {
         showToast(r?.message || 'Error deleting rate', 'error');
       }
     } catch (e) {
-      showToast('Error connection delete rate', 'error');
+      showToast('Error deleting rate', 'error');
     }
-  };
-
-  const handleEditRate = (rate) => {
-    setRateID(rate.RateID);
-    setRD_PComm(rate.D_PComm);
-    setRD_Amt(rate.D_Amt);
-    setRA_PComm(rate.A_PComm);
-    setRA_Amt(rate.A_Amt);
-    setRPatti(rate.Patti);
-    setEditingRate(true);
   };
 
   const handleResetRateForm = () => {
@@ -442,664 +384,347 @@ export default function ContactsPage() {
     setLcPartyID('0');
     setLcCommPer('0');
     setRatesReadonly(false);
-    
-    if (formRefs.txtCustomerName.current) {
-      formRefs.txtCustomerName.current.focus();
-    }
   };
 
-  // Filter lists
-  const filteredContacts = contacts.filter(c => {
+  const filteredContacts = contacts.filter((c) => {
     const name = c.CustomerName || '';
     const mob = c.Mobile || c.MobileNo || '';
-    const matchQuery = name.toLowerCase().includes(searchQuery.toLowerCase()) || mob.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const matchQuery =
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mob.toLowerCase().includes(searchQuery.toLowerCase());
+
     if (!matchQuery) return false;
     if (!isSuperAdmin || activeFilter === 'all') return true;
 
     const status = activeStatusMap[mob];
     const isActive = status && (status.IsActive === 'True' || status.IsActive === true);
-    
+
     return activeFilter === 'active' ? isActive : !isActive;
   });
 
-  return (
-    <div className="content">
-      <div className="row">
-        {/* Left Form creator panel */}
-        <div className={hideList ? "col-md-12" : "col-md-5"}>
-          <div className="card" id="formCard">
-            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="card-title" style={{ fontWeight: 'bold' }}>{cid ? 'Edit Contact' : 'Create Contact'}</div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button className="btn btn-toggle-list btn-sm" onClick={() => setHideList(!hideList)}>
-                  {hideList ? 'Show List' : 'Hide List'}
-                </button>
-                {cid && (
-                  <button className="btn btn-success btn-sm" onClick={handleResetForm}>
-                    + New
-                  </button>
-                )}
-              </div>
+  const columns = [
+    {
+      header: 'Customer',
+      accessorKey: 'CustomerName',
+      cell: ({ row }) => {
+        const c = row.original;
+        const name = c.CustomerName || 'Unknown';
+        const mob = c.Mobile || c.MobileNo || '';
+        return (
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-bold text-white text-xs uppercase">
+              {name.charAt(0)}
             </div>
-            <div className="card-body">
-              <div className="row">
-                <div className="col-md-6">
-                  <div className="form-group">
-                    <label htmlFor="txtCustomerName">Contact Name</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      id="txtCustomerName" 
-                      placeholder="Enter Customer Name" 
-                      style={{ textTransform: 'capitalize' }}
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtMobileNo')}
-                      ref={formRefs.txtCustomerName}
-                      autoFocus
-                    />
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="form-group">
-                    <label htmlFor="txtMobileNo">Mobile</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      id="txtMobileNo" 
-                      placeholder="Enter Mobile No" 
-                      maxLength={10} 
-                      value={mobile}
-                      onChange={(e) => setMobile(e.target.value.replace(/[^0-9]/g, ''))}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtD_PComm')}
-                      ref={formRefs.txtMobileNo}
-                      readOnly={!!cid}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="row">
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label htmlFor="txtD_PComm">D_PComm</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txtD_PComm" 
-                      value={dPComm}
-                      onChange={(e) => setDPComm(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtD_Amt')}
-                      ref={formRefs.txtD_PComm}
-                      readOnly={ratesReadonly}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label htmlFor="txtD_Amt">D_Amt</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txtD_Amt" 
-                      value={dAmt}
-                      onChange={(e) => setDAmt(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtA_PComm')}
-                      ref={formRefs.txtD_Amt}
-                      readOnly={ratesReadonly}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label htmlFor="txtA_PComm">A_PComm</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txtA_PComm" 
-                      value={aPComm}
-                      onChange={(e) => setAPComm(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtA_Amt')}
-                      ref={formRefs.txtA_PComm}
-                      readOnly={ratesReadonly}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label htmlFor="txtA_Amt">A_Amt</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txtA_Amt" 
-                      value={aAmt}
-                      onChange={(e) => setAAmt(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtPatti')}
-                      ref={formRefs.txtA_Amt}
-                      readOnly={ratesReadonly}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="row">
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label htmlFor="txtPatti">Patti</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txtPatti" 
-                      value={patti}
-                      onChange={(e) => setPatti(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtLC')}
-                      ref={formRefs.txtPatti}
-                      readOnly={ratesReadonly}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label htmlFor="txtLC">LC</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txtLC" 
-                      value={lc}
-                      onChange={(e) => setLc(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'ddlSrchCustomers')}
-                      ref={formRefs.txtLC}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 3rd Party Settings */}
-              <div className="row">
-                <div className="col-md-6">
-                  <div className="form-group">
-                    <label htmlFor="ddlSrchCustomers">3rd Hissa Party</label>
-                    <select 
-                      className="form-control" 
-                      id="ddlSrchCustomers"
-                      value={hissaPartyID}
-                      onChange={(e) => setHissaPartyID(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txt3rdPartyHissaPer')}
-                      ref={formRefs.ddlSrchCustomers}
-                    >
-                      <option value="0">Select Customer Name</option>
-                      {contacts.map(c => <option value={c.CID} key={c.CID}>{c.CustomerName}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="form-group">
-                    <label htmlFor="txt3rdPartyHissaPer">Hissa (%)</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txt3rdPartyHissaPer" 
-                      value={hissaPer}
-                      onChange={(e) => setHissaPer(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'ddlCommParty')}
-                      ref={formRefs.txt3rdPartyHissaPer}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label htmlFor="ddlCommParty">3rd Comm Party</label>
-                    <select 
-                      className="form-control" 
-                      id="ddlCommParty"
-                      value={commPartyID}
-                      onChange={(e) => setCommPartyID(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtDaraCommPer')}
-                      ref={formRefs.ddlCommParty}
-                    >
-                      <option value="0">Select Customer Name</option>
-                      {contacts.map(c => <option value={c.CID} key={c.CID}>{c.CustomerName}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label htmlFor="txtDaraCommPer">Dara (%)</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txtDaraCommPer" 
-                      value={daraCommPer}
-                      onChange={(e) => setDaraCommPer(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtAkharCommPer')}
-                      ref={formRefs.txtDaraCommPer}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label htmlFor="txtAkharCommPer">Akhar (%)</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txtAkharCommPer" 
-                      value={akharCommPer}
-                      onChange={(e) => setAkharCommPer(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'ddlLCParty')}
-                      ref={formRefs.txtAkharCommPer}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-6">
-                  <div className="form-group">
-                    <label htmlFor="ddlLCParty">3rd LC Party</label>
-                    <select 
-                      className="form-control" 
-                      id="ddlLCParty"
-                      value={lcPartyID}
-                      onChange={(e) => setLcPartyID(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'txtLCCommPer')}
-                      ref={formRefs.ddlLCParty}
-                    >
-                      <option value="0">Select Customer Name</option>
-                      {contacts.map(c => <option value={c.CID} key={c.CID}>{c.CustomerName}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="form-group">
-                    <label htmlFor="txtLCCommPer">LC (%)</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      id="txtLCCommPer" 
-                      value={lcCommPer}
-                      onChange={(e) => setLcCommPer(e.target.value)}
-                      onKeyDown={(e) => handleFormKeyDown(e, 'SAVE')}
-                      ref={formRefs.txtLCCommPer}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <input 
-                  type="checkbox" 
-                  id="chkSelfComm"
-                  checked={selfComm}
-                  onChange={(e) => setSelfComm(e.target.checked)}
-                />{' '}
-                <label htmlFor="chkSelfComm">Self Commission</label>
-                &nbsp;&nbsp;&nbsp;&nbsp;
-                <input 
-                  type="checkbox" 
-                  id="chkYantriTo"
-                  checked={yantriTo}
-                  onChange={(e) => setYantriTo(e.target.checked)}
-                />{' '}
-                <label htmlFor="chkYantriTo">Yantri To</label>
-                &nbsp;&nbsp;&nbsp;&nbsp;
-                <input 
-                  type="checkbox" 
-                  id="chkIsLimit"
-                  checked={isLimit}
-                  onChange={(e) => setIsLimit(e.target.checked)}
-                />{' '}
-                <label htmlFor="chkIsLimit">Limit</label>
-                &nbsp;&nbsp;&nbsp;&nbsp;
-                <input 
-                  type="checkbox" 
-                  id="chkIsUttar"
-                  checked={isUttar}
-                  onChange={(e) => setIsUttar(e.target.checked)}
-                />{' '}
-                <label htmlFor="chkIsUttar">Uttar</label>
-              </div>
-            </div>
-            
-            <div className="card-action">
-              <button className="btn btn-success" onClick={handleSaveContact} disabled={savingContact}>
-                {savingContact ? 'Saving...' : cid ? 'Update' : 'Save'}
-              </button>
-              {cid && (
-                <button className="btn btn-danger" onClick={handleDeleteCustomer} style={{ marginLeft: '10px' }}>
-                  Delete
-                </button>
-              )}
+            <div>
+              <div className="font-bold text-slate-900 dark:text-white capitalize">{name}</div>
+              <div className="text-xs text-slate-500 font-mono">{mob}</div>
             </div>
           </div>
+        );
+      },
+    },
+    {
+      header: 'Self Comm',
+      accessorKey: 'IsSelfComm',
+      cell: ({ row }) => {
+        const c = row.original;
+        const isSelf = c.IsSelfComm === 'True' || c.IsSelfComm === 1 || c.IsSelfComm === true;
+        return (
+          <Button
+            size="sm"
+            variant={isSelf ? 'success' : 'outline'}
+            onClick={() => handleToggleFlag(c.CID, 'IsSelfComm', c.IsSelfComm)}
+          >
+            {isSelf ? 'Yes' : 'No'}
+          </Button>
+        );
+      },
+    },
+    {
+      header: 'Yantri To',
+      accessorKey: 'IsYantriTo',
+      cell: ({ row }) => {
+        const c = row.original;
+        const isYantri = c.IsYantriTo === 'True' || c.IsYantriTo === 1 || c.IsYantriTo === true;
+        return (
+          <Button
+            size="sm"
+            variant={isYantri ? 'success' : 'outline'}
+            onClick={() => handleToggleFlag(c.CID, 'IsYantriTo', c.IsYantriTo)}
+          >
+            {isYantri ? 'Yes' : 'No'}
+          </Button>
+        );
+      },
+    },
+    ...(isSuperAdmin
+      ? [
+          {
+            header: 'Status',
+            accessorKey: 'Mobile',
+            cell: ({ row }) => {
+              const mob = row.original.Mobile || row.original.MobileNo;
+              const status = activeStatusMap[mob];
+              const isActive = status && (status.IsActive === 'True' || status.IsActive === true);
+              if (!status) return <span className="text-xs text-slate-400">No login</span>;
+
+              return (
+                <Button
+                  size="sm"
+                  variant={isActive ? 'success' : 'danger'}
+                  onClick={() => handleToggleActiveStatus(mob, isActive)}
+                >
+                  {isActive ? 'Active' : 'Disabled'}
+                </Button>
+              );
+            },
+          },
+        ]
+      : []),
+    {
+      header: 'Actions',
+      id: 'actions',
+      cell: ({ row }) => {
+        const c = row.original;
+        return (
+          <div className="flex items-center gap-2">
+            <Button size="icon-sm" variant="outline" onClick={() => handleSelectCustomer(c)}>
+              <Edit2 className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => handleShowRates(c.CID, c.CustomerName)}
+              leftIcon={<Percent className="h-3.5 w-3.5" />}
+            >
+              Rates
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Contacts & Rates Management"
+        description="Create customer profiles, set default rates, 3rd party commission structures, and status flags."
+        actions={
+          <Button variant="outline" onClick={() => setHideList(!hideList)}>
+            {hideList ? 'Show Contacts Table' : 'Hide Contacts Table'}
+          </Button>
+        }
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Form Panel */}
+        <div className={hideList ? 'lg:col-span-12' : 'lg:col-span-5'}>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>{cid ? 'Edit Contact' : 'Create New Contact'}</CardTitle>
+              {cid && (
+                <Button variant="success" size="sm" onClick={handleResetForm} leftIcon={<Plus className="h-3.5 w-3.5" />}>
+                  New Contact
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Contact Name"
+                  placeholder="Enter Name"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                />
+                <Input
+                  label="Mobile Number"
+                  placeholder="10 digit Mobile"
+                  maxLength={10}
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value.replace(/[^0-9]/g, ''))}
+                  disabled={!!cid}
+                />
+              </div>
+
+              {/* Standard Rates Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <Input label="D Comm (%)" type="number" value={dPComm} onChange={(e) => setDPComm(e.target.value)} disabled={ratesReadonly} />
+                <Input label="D Amt" type="number" value={dAmt} onChange={(e) => setDAmt(e.target.value)} disabled={ratesReadonly} />
+                <Input label="A Comm (%)" type="number" value={aPComm} onChange={(e) => setAPComm(e.target.value)} disabled={ratesReadonly} />
+                <Input label="A Amt" type="number" value={aAmt} onChange={(e) => setAAmt(e.target.value)} disabled={ratesReadonly} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Patti (%)" type="number" value={patti} onChange={(e) => setPatti(e.target.value)} disabled={ratesReadonly} />
+                <Input label="Loss Cut (LC)" type="number" value={lc} onChange={(e) => setLc(e.target.value)} />
+              </div>
+
+              {/* 3rd Party Settings Header */}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  3rd Party Commission Rules
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Select label="3rd Hissa Party" value={hissaPartyID} onChange={(e) => setHissaPartyID(e.target.value)}>
+                  <option value="0">Select Customer Name</option>
+                  {contacts.map((c) => (
+                    <option value={c.CID} key={c.CID}>
+                      {c.CustomerName}
+                    </option>
+                  ))}
+                </Select>
+                <Input label="Hissa (%)" type="number" value={hissaPer} onChange={(e) => setHissaPer(e.target.value)} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Select label="3rd Comm Party" value={commPartyID} onChange={(e) => setCommPartyID(e.target.value)}>
+                  <option value="0">Select Customer</option>
+                  {contacts.map((c) => (
+                    <option value={c.CID} key={c.CID}>
+                      {c.CustomerName}
+                    </option>
+                  ))}
+                </Select>
+                <Input label="Dara (%)" type="number" value={daraCommPer} onChange={(e) => setDaraCommPer(e.target.value)} />
+                <Input label="Akhar (%)" type="number" value={akharCommPer} onChange={(e) => setAkharCommPer(e.target.value)} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Select label="3rd LC Party" value={lcPartyID} onChange={(e) => setLcPartyID(e.target.value)}>
+                  <option value="0">Select Customer</option>
+                  {contacts.map((c) => (
+                    <option value={c.CID} key={c.CID}>
+                      {c.CustomerName}
+                    </option>
+                  ))}
+                </Select>
+                <Input label="LC (%)" type="number" value={lcCommPer} onChange={(e) => setLcCommPer(e.target.value)} />
+              </div>
+
+              {/* Checkbox Flags */}
+              <div className="flex flex-wrap gap-4 pt-2">
+                <Checkbox label="Self Commission" checked={selfComm} onChange={(e) => setSelfComm(e.target.checked)} />
+                <Checkbox label="Yantri To" checked={yantriTo} onChange={(e) => setYantriTo(e.target.checked)} />
+                <Checkbox label="Limit" checked={isLimit} onChange={(e) => setIsLimit(e.target.checked)} />
+                <Checkbox label="Uttar" checked={isUttar} onChange={(e) => setIsUttar(e.target.checked)} />
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <Button className="flex-1" isLoading={savingContact} onClick={handleSaveContact}>
+                  {cid ? 'UPDATE CONTACT' : 'SAVE CONTACT'}
+                </Button>
+                {cid && (
+                  <Button variant="danger" onClick={handleDeleteCustomer} leftIcon={<Trash2 className="h-4 w-4" />}>
+                    Delete
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
+        {/* Right Contacts Table */}
         {!hideList && (
-          /* Right Contacts List panel */
-          <div className="col-md-7">
-          <div className="card">
-            <div className="card-header" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="card-title" style={{ fontWeight: 'bold' }}>All Contacts</div>
-                <div style={{ fontSize: '0.86rem', color: 'var(--muted)', fontWeight: 600 }}>
-                  {filteredContacts.length} contacts
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input 
-                  type="text" 
-                  id="srchCustomer"
-                  className="form-control"
-                  placeholder="Filter by name or mobile..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ flex: 1 }}
-                />
-                
+          <div className="lg:col-span-7">
+            <Card>
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <CardTitle>Contacts Directory ({filteredContacts.length})</CardTitle>
                 {isSuperAdmin && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #ced4da', borderRadius: '4px', padding: '0 8px', background: '#fff' }}>
-                    <input 
-                      type="radio" 
-                      id="fAll" 
-                      name="activeFilter" 
-                      checked={activeFilter === 'all'}
-                      onChange={() => setActiveFilter('all')}
-                    />{' '}
-                    <label htmlFor="fAll" style={{ margin: 0, fontSize: '0.72rem', cursor: 'pointer' }}>All</label>
-                    
-                    <input 
-                      type="radio" 
-                      id="fActive" 
-                      name="activeFilter" 
-                      checked={activeFilter === 'active'}
-                      onChange={() => setActiveFilter('active')}
-                    />{' '}
-                    <label htmlFor="fActive" style={{ margin: 0, fontSize: '0.72rem', cursor: 'pointer' }}>Active</label>
-
-                    <input 
-                      type="radio" 
-                      id="fInactive" 
-                      name="activeFilter" 
-                      checked={activeFilter === 'inactive'}
-                      onChange={() => setActiveFilter('inactive')}
-                    />{' '}
-                    <label htmlFor="fInactive" style={{ margin: 0, fontSize: '0.72rem', cursor: 'pointer' }}>Inactive</label>
+                  <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs dark:bg-slate-800">
+                    <button
+                      onClick={() => setActiveFilter('all')}
+                      className={`px-3 py-1 font-semibold rounded-lg ${activeFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={() => setActiveFilter('active')}
+                      className={`px-3 py-1 font-semibold rounded-lg ${activeFilter === 'active' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
+                    >
+                      Active
+                    </button>
+                    <button
+                      onClick={() => setActiveFilter('inactive')}
+                      className={`px-3 py-1 font-semibold rounded-lg ${activeFilter === 'inactive' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
+                    >
+                      Inactive
+                    </button>
                   </div>
                 )}
-              </div>
-            </div>
-            
-            <div className="table-responsive">
-              {loadingContacts ? (
-                <div className="emsg">
-                  <span className="spin"></span> Loading...
-                </div>
-              ) : filteredContacts.length === 0 ? (
-                <div className="emsg">No contacts found</div>
-              ) : (
-                <table className="table-bordered-bd-primary table-hover" style={{ textAlign: 'center', width: '100%' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: 'LightGray' }}>
-                      <th style={{ padding: '8px', width: '50px' }}>Edit</th>
-                      <th style={{ textAlign: 'left', padding: '8px' }}>Customer</th>
-                      <th style={{ width: '80px' }}>Self Comm</th>
-                      <th style={{ width: '80px' }}>Yantri To</th>
-                      {isSuperAdmin && <th style={{ width: '90px' }}>Status</th>}
-                      <th style={{ width: '60px' }}>Rates</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredContacts.map((c) => {
-                      const cidAttr = c.CID;
-                      const name = c.CustomerName || '';
-                      const mob = c.Mobile || c.MobileNo || '';
-                      
-                      const isSelf = c.IsSelfComm === 'True' || c.IsSelfComm === 1 || c.IsSelfComm === true;
-                      const isYantri = c.IsYantriTo === 'True' || c.IsYantriTo === 1 || c.IsYantriTo === true;
-
-                      const status = activeStatusMap[mob];
-                      const isActive = status && (status.IsActive === 'True' || status.IsActive === true);
-
-                      return (
-                        <tr 
-                          key={cidAttr} 
-                          id={`row_${cidAttr}`}
-                          onClick={() => handleSelectCustomer(c)}
-                          style={{ cursor: 'pointer' }}
-                          className={cid === cidAttr ? 'table-active' : ''}
-                        >
-                          <td style={{ padding: '8px' }}>
-                            <img 
-                              src="/vendor/images/edit-icon-orange-pencil-0.png" 
-                              width="26" 
-                              height="26" 
-                              style={{ cursor: 'pointer' }}
-                              onClick={(e) => { e.stopPropagation(); handleSelectCustomer(c); }}
-                              alt="Edit"
-                            />
-                          </td>
-                          <td style={{ textAlign: 'left', padding: '8px' }}>
-                            <div style={{ fontWeight: 600, textTransform: 'capitalize' }}>{name}</div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{mob}</div>
-                          </td>
-                          <td>
-                            <button 
-                              className={`btn-flag ${isSelf ? 'yes' : 'no'}`}
-                              onClick={(e) => { e.stopPropagation(); handleToggleFlag(cidAttr, 'IsSelfComm', c.IsSelfComm); }}
-                            >
-                              {isSelf ? 'Yes' : 'No'}
-                            </button>
-                          </td>
-                          <td>
-                            <button 
-                              className={`btn-flag ${isYantri ? 'yes' : 'no'}`}
-                              onClick={(e) => { e.stopPropagation(); handleToggleFlag(cidAttr, 'IsYantriTo', c.IsYantriTo); }}
-                            >
-                              {isYantri ? 'Yes' : 'No'}
-                            </button>
-                          </td>
-                          {isSuperAdmin && (
-                            <td>
-                              {status ? (
-                                <button 
-                                  className={`btn-status ${isActive ? 'yes' : 'no'}`}
-                                  onClick={(e) => { e.stopPropagation(); handleToggleActiveStatus(mob, isActive); }}
-                                >
-                                  {isActive ? 'Active' : 'Deactivated'}
-                                </button>
-                              ) : (
-                                <span style={{ color: 'var(--muted)', fontSize: '0.72rem' }}>No login</span>
-                              )}
-                            </td>
-                          )}
-                          <td>
-                            <button 
-                              className="btn btn-success btn-sm"
-                              onClick={(e) => { e.stopPropagation(); handleShowRates(cidAttr, name); }}
-                            >
-                              Rate
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
+              </CardHeader>
+              <CardContent>
+                <DataTable
+                  columns={columns}
+                  data={filteredContacts}
+                  isLoading={loadingContacts}
+                  searchPlaceholder="Filter contacts directory..."
+                />
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
 
-      {/* Sub Rates Management Card */}
-      {selectedContactRates && (
-        <div className="row" id="ratesCardSection">
-          <div className="col-md-12">
-            <div className="card" id="ratesCard">
-              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="card-title" style={{ fontWeight: 'bold' }}>
-                  Manage Rates for <span style={{ color: 'var(--green2)' }}>{selectedContactRates.name}</span>
-                </div>
-                <button className="btn btn-danger btn-sm" onClick={() => setSelectedContactRates(null)}>
-                  Close
-                </button>
-              </div>
-              
-              <div className="card-body">
-                {/* Rate Adding Form */}
-                <div className="row" style={{ marginBottom: '20px', borderBottom: '1px solid #ced4da', paddingBottom: '20px' }}>
-                  <div className="col-md-2">
-                    <div className="form-group">
-                      <label>D_PComm</label>
-                      <input 
-                        type="number" 
-                        className="form-control" 
-                        value={rD_PComm}
-                        onChange={(e) => setRD_PComm(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-2">
-                    <div className="form-group">
-                      <label>D_Amt</label>
-                      <input 
-                        type="number" 
-                        className="form-control" 
-                        value={rD_Amt}
-                        onChange={(e) => setRD_Amt(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-2">
-                    <div className="form-group">
-                      <label>A_PComm</label>
-                      <input 
-                        type="number" 
-                        className="form-control" 
-                        value={rA_PComm}
-                        onChange={(e) => setRA_PComm(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-2">
-                    <div className="form-group">
-                      <label>A_Amt</label>
-                      <input 
-                        type="number" 
-                        className="form-control" 
-                        value={rA_Amt}
-                        onChange={(e) => setRA_Amt(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-2">
-                    <div className="form-group">
-                      <label>Patti</label>
-                      <input 
-                        type="number" 
-                        className="form-control" 
-                        value={rPatti}
-                        onChange={(e) => setRPatti(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-2" style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
-                    <button 
-                      className="btn btn-success btn-block" 
-                      style={{ height: '40px' }}
-                      onClick={handleSaveRate}
-                      disabled={savingRate}
-                    >
-                      {savingRate ? '...' : editingRate ? 'Edit Rate' : 'ADD Rate'}
-                    </button>
-                    {editingRate && (
-                      <button 
-                        className="btn btn-danger" 
-                        style={{ height: '40px' }}
-                        onClick={handleDeleteRate}
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
-                </div>
+      {/* Manage Rates Modal */}
+      <Dialog
+        isOpen={!!selectedContactRates}
+        onClose={() => setSelectedContactRates(null)}
+        title={`Manage Rates: ${selectedContactRates?.name}`}
+        description="Add multiple rate options for this customer."
+        maxWidth="max-w-2xl"
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <Input label="D Comm (%)" type="number" value={rD_PComm} onChange={(e) => setRD_PComm(e.target.value)} />
+            <Input label="D Amt" type="number" value={rD_Amt} onChange={(e) => setRD_Amt(e.target.value)} />
+            <Input label="A Comm (%)" type="number" value={rA_PComm} onChange={(e) => setRA_PComm(e.target.value)} />
+            <Input label="A Amt" type="number" value={rA_Amt} onChange={(e) => setRA_Amt(e.target.value)} />
+            <Input label="Patti (%)" type="number" value={rPatti} onChange={(e) => setRPatti(e.target.value)} />
+          </div>
 
-                {/* Rates list table */}
-                <div className="table-responsive">
-                  {loadingRates ? (
-                    <div className="emsg"><span className="spin"></span> Loading...</div>
-                  ) : ratesList.length === 0 ? (
-                    <div className="emsg">No rates added yet. Add first rate above.</div>
-                  ) : (
-                    <table className="table-bordered-bd-primary table-hover" style={{ textAlign: 'center', width: '100%' }}>
-                      <thead>
-                        <tr style={{ backgroundColor: 'LightGray' }}>
-                          <th style={{ padding: '6px' }}>#</th>
-                          <th>D%</th>
-                          <th>D Amt</th>
-                          <th>A%</th>
-                          <th>A Amt</th>
-                          <th>Patti%</th>
-                          <th>Rate</th>
-                          <th>Edit</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ratesList.map((d, i) => (
-                          <tr key={d.RateID || i}>
-                            <td style={{ padding: '6px' }}>{i + 1}</td>
-                            <td>{d.D_PComm}</td>
-                            <td>{d.D_Amt}</td>
-                            <td>{d.A_PComm}</td>
-                            <td>{d.A_Amt}</td>
-                            <td>{d.Patti}</td>
-                            <td style={{ color: 'var(--green2)', fontWeight: 600 }}>
-                              {d.D_PComm}/{d.D_Amt}-{d.A_PComm}/{d.A_Amt}-{d.Patti}
-                            </td>
-                            <td>
-                              <img 
-                                src="/vendor/images/edit-icon-orange-pencil-0.png" 
-                                width="26" 
-                                height="26" 
-                                style={{ cursor: 'pointer' }} 
-                                onClick={() => handleEditRate(d)}
-                                alt="Edit"
-                              />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
+          <div className="flex justify-end gap-2">
+            <Button onClick={handleSaveRate} isLoading={savingRate}>
+              {editingRate ? 'Update Rate' : 'Add Rate'}
+            </Button>
+            {editingRate && (
+              <Button variant="danger" onClick={handleDeleteRate}>
+                Delete
+              </Button>
+            )}
+          </div>
+
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+            {loadingRates ? (
+              <LoadingSpinner text="Fetching rates..." />
+            ) : ratesList.length === 0 ? (
+              <p className="text-center text-xs text-slate-500 py-4">No custom rates added yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {ratesList.map((d, i) => (
+                  <div
+                    key={d.RateID || i}
+                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-900"
+                  >
+                    <div>
+                      <span className="font-bold text-slate-900 dark:text-white mr-2">#{i + 1}</span>
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                        {d.D_PComm}/{d.D_Amt}-{d.A_PComm}/{d.A_Amt}-{d.Patti}
+                      </span>
+                    </div>
+                    <Button size="icon-sm" variant="outline" onClick={() => { setRateID(d.RateID); setRD_PComm(d.D_PComm); setRD_Amt(d.D_Amt); setRA_PComm(d.A_PComm); setRA_Amt(d.A_Amt); setRPatti(d.Patti); setEditingRate(true); }}>
+                      <Edit2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
-      )}
-
-      <style jsx>{`
-        .btn-toggle-list { background-color: #6c757d !important; color: #fff !important; border: none !important; }
-        .btn-toggle-list:hover,
-        .btn-toggle-list:focus,
-        .btn-toggle-list:active { background-color: #5a6268 !important; color: #fff !important; box-shadow: none !important; }
-
-        .btn-flag { cursor: pointer; color: #fff; border: none; border-radius: 2px; font-size: small; height: 28px; width: 42px; font-weight: bold; }
-        .btn-flag.yes { background-color: #31ce36; }
-        .btn-flag.no { background-color: #f25961; }
-        
-        .btn-status { cursor: pointer; color: #fff; border: none; border-radius: 2px; font-size: small; height: 28px; width: 84px; font-weight: bold; }
-        .btn-status.yes { background-color: #31ce36; }
-        .btn-status.no { background-color: #f25961; }
-
-        .emsg { color: var(--muted); text-align: center; padding: 20px; font-size: .84rem; }
-        .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
-        @keyframes spin { to { transform: rotate(360deg) } }
-      `}</style>
+      </Dialog>
     </div>
   );
 }

@@ -1,9 +1,30 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import { useAuth } from "../../../context/AuthContext";
-import { useRouter } from "next/navigation";
-import { API } from "../../../utils/api";
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Search,
+  Gamepad2,
+  Users,
+  ArrowLeft,
+  ChevronRight,
+  Sparkles,
+  Zap,
+  CheckCircle2,
+  Clock,
+  MessageSquare,
+  Activity,
+} from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
+import { API } from '../../../utils/api';
+import { Input } from '../../../components/ui/input';
+import { Button } from '../../../components/ui/button';
+import { Card, StatCard } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { EmptyState } from '../../../components/ui/empty-state';
+import { LoadingSpinner } from '../../../components/ui/spinner';
+import { PageHeader } from '../../../components/layout/PageHeader';
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -13,12 +34,12 @@ export default function HomePage() {
   const [games, setGames] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [loadingContacts, setLoadingContacts] = useState(false);
 
   // Layout navigation state: 'ws' (welcome), 'gp' (games panel), 'rp' (rates panel)
-  const [panelView, setPanelView] = useState("ws");
+  const [panelView, setPanelView] = useState('ws');
 
   // Selection states
   const [selectedContact, setSelectedContact] = useState(null); // { uid, cid, name, mob }
@@ -32,7 +53,7 @@ export default function HomePage() {
   // Load active games bar
   const loadBar = async () => {
     try {
-      const r = await API.get("/api/home/games");
+      const r = await API.get('/sapi/home/games');
       if (r && r.success) {
         setGames(r.data || []);
       }
@@ -42,12 +63,10 @@ export default function HomePage() {
   };
 
   // Load standard contacts list
-  const loadContacts = async (filterText = "") => {
+  const loadContacts = async (filterText = '') => {
     setLoadingContacts(true);
     try {
-      const r = await API.get(
-        `/api/home/messages?filter=${encodeURIComponent(filterText)}`,
-      );
+      const r = await API.get(`/sapi/home/messages?filter=${encodeURIComponent(filterText)}`);
       if (r && r.success) {
         setContacts(r.data || []);
       }
@@ -66,33 +85,30 @@ export default function HomePage() {
       return;
     }
     setIsSearching(true);
-    
+
     const q = query.toLowerCase().trim();
-    // Instant client-side filter on loaded contacts by Name or Mobile
     const localMatches = contacts.filter((c) => {
-      const name = (c.CustomerName || "").toLowerCase();
-      const mob = (c.Mobile || c.MobileNo || "").toLowerCase();
+      const name = (c.CustomerName || '').toLowerCase();
+      const mob = (c.Mobile || c.MobileNo || '').toLowerCase();
       return name.includes(q) || mob.includes(q);
     });
     setSearchResults(localMatches);
 
     try {
-      // Query server for any additional receivers/messages
       const [r1, r2] = await Promise.all([
-        API.get(`/api/home/receivers?filter=${encodeURIComponent(query)}`),
-        API.get(`/api/home/messages?filter=${encodeURIComponent(query)}`)
+        API.get(`/sapi/home/receivers?filter=${encodeURIComponent(query)}`),
+        API.get(`/sapi/home/messages?filter=${encodeURIComponent(query)}`),
       ]);
 
       const serverItems = [
         ...(r1 && r1.success && Array.isArray(r1.data) ? r1.data : []),
-        ...(r2 && r2.success && Array.isArray(r2.data) ? r2.data : [])
+        ...(r2 && r2.success && Array.isArray(r2.data) ? r2.data : []),
       ];
 
-      // Combine local matches + server items and deduplicate by Mobile
       const combined = [...localMatches];
-      const seenMobiles = new Set(localMatches.map(c => String(c.Mobile || c.MobileNo || '').trim()));
+      const seenMobiles = new Set(localMatches.map((c) => String(c.Mobile || c.MobileNo || '').trim()));
 
-      serverItems.forEach(item => {
+      serverItems.forEach((item) => {
         const mob = String(item.Mobile || item.MobileNo || '').trim();
         if (mob && !seenMobiles.has(mob)) {
           seenMobiles.add(mob);
@@ -106,7 +122,6 @@ export default function HomePage() {
     }
   };
 
-  // Handle typing with debounce
   const handleSearchChange = (e) => {
     const val = e.target.value;
     setSearchQuery(val);
@@ -116,72 +131,56 @@ export default function HomePage() {
     }, 350);
   };
 
-  // Initial load
   useEffect(() => {
     loadBar();
-    loadContacts("");
+    loadContacts('');
 
     const interval = setInterval(() => {
-      if (typeof document !== "undefined" && !document.hidden) {
+      if (typeof document !== 'undefined' && !document.hidden) {
         loadBar();
       }
     }, 5000);
 
     const handleVisibility = () => {
-      if (typeof document !== "undefined" && !document.hidden) {
+      if (typeof document !== 'undefined' && !document.hidden) {
         loadBar();
       }
     };
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", handleVisibility);
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibility);
     }
 
     return () => {
       clearInterval(interval);
-      if (typeof document !== "undefined") {
-        document.removeEventListener("visibilitychange", handleVisibility);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibility);
       }
     };
   }, []);
 
-  // Collapse sidebar in original style on picking a panel
   const showP = (view) => {
     setPanelView(view);
-    if (typeof document !== "undefined") {
-      const sidebar = document.getElementById("sidebarPanelContainer"); // We can add ref or ID
-      const rightPanel = document.getElementById("rightPanelContainer");
-      if (sidebar && rightPanel) {
-        if (view === "ws") {
-          sidebar.style.display = "flex";
-          rightPanel.style.display = "none";
-        } else {
-          sidebar.style.display = "none";
-          rightPanel.style.display = "flex";
-        }
-      }
-    }
   };
 
   const handleBack = () => {
     setSelectedContact(null);
-    showP("ws");
+    showP('ws');
   };
 
-  // Pick customer contact
   const handlePickContact = async (c) => {
-    const name = c.CustomerName || c.Mobile || "Unknown";
-    const mob = c.Mobile || c.MobileNo || "";
-    const uid = c.fUID || c.UID || "";
-    const cid = c.CID || "0";
+    const name = c.CustomerName || c.Mobile || 'Unknown';
+    const mob = c.Mobile || c.MobileNo || '';
+    const uid = c.fUID || c.UID || '';
+    const cid = c.CID || '0';
 
     const selected = { uid, cid, name, mob };
     setSelectedContact(selected);
-    showP("gp");
+    showP('gp');
 
     setSelectedContactGames([]);
     setLoadingContactGames(true);
     try {
-      const r = await API.get(`/api/home/user-games/${uid}`);
+      const r = await API.get(`/sapi/home/user-games/${uid}`);
       if (r && r.success) {
         setSelectedContactGames(r.data || []);
       }
@@ -192,56 +191,36 @@ export default function HomePage() {
     }
   };
 
-  // Pick game inside picked customer panel
   const handlePickGame = async (gid, gname, selUID) => {
     if (!selectedContact) return;
     const { cid, mob } = selectedContact;
 
     try {
-      const r = await API.get(`/api/home/customer-rates/${cid}`);
+      const r = await API.get(`/sapi/home/customer-rates/${cid}`);
       if (!r || !r.success) return;
 
-      const uRes = await API.get(`/api/home/user-by-mobile/${mob}`);
+      const uRes = await API.get(`/sapi/home/user-by-mobile/${mob}`);
       const realUID =
         uRes && uRes.success && uRes.data && uRes.data.length > 0
           ? uRes.data[0].UID
           : selUID;
 
-      if (r.data.length === 0 || cid === "0") {
+      if (r.data.length === 0 || cid === '0') {
         openChat(
-          mob,
-          gid,
-          gname,
-          realUID,
-          "0/100-0/10-0",
-          "0",
-          "100",
-          "0",
-          "10",
-          "0",
-          "0",
-          "0",
+          mob, gid, gname, realUID,
+          '0/100-0/10-0', '0', '100', '0', '10', '0', '0', '0'
         );
       } else if (r.data.length === 1) {
         const d = r.data[0];
         openChat(
-          mob,
-          gid,
-          gname,
-          realUID,
-          d.Rate,
-          d.D_PComm,
-          d.D_Amt,
-          d.A_PComm,
-          d.A_Amt,
-          d.Patti,
-          d.ThirdPartyHissaID,
-          d.ThirdPartyHissaPer,
+          mob, gid, gname, realUID,
+          d.Rate, d.D_PComm, d.D_Amt, d.A_PComm, d.A_Amt, d.Patti,
+          d.ThirdPartyHissaID, d.ThirdPartyHissaPer
         );
       } else {
         setPendingGameSelection({ gameID: gid, gameName: gname, realUID });
         setGameRates(r.data);
-        showP("rp");
+        showP('rp');
       }
     } catch (e) {
       console.error(e);
@@ -253,18 +232,9 @@ export default function HomePage() {
     const { gameID, gameName, realUID } = pendingGameSelection;
     const { mob } = selectedContact;
     openChat(
-      mob,
-      gameID,
-      gameName,
-      realUID,
-      d.Rate,
-      d.D_PComm,
-      d.D_Amt,
-      d.A_PComm,
-      d.A_Amt,
-      d.Patti,
-      d.ThirdPartyHissaID,
-      d.ThirdPartyHissaPer,
+      mob, gameID, gameName, realUID,
+      d.Rate, d.D_PComm, d.D_Amt, d.A_PComm, d.A_Amt, d.Patti,
+      d.ThirdPartyHissaID, d.ThirdPartyHissaPer
     );
   };
 
@@ -273,18 +243,7 @@ export default function HomePage() {
   };
 
   const openChat = (
-    mob,
-    gid,
-    gname,
-    suid,
-    rates,
-    dpc,
-    da,
-    apc,
-    aa,
-    pati,
-    hid,
-    hper,
+    mob, gid, gname, suid, rates, dpc, da, apc, aa, pati, hid, hper
   ) => {
     const p = new URLSearchParams({
       SelectedMobile: mob,
@@ -299,182 +258,216 @@ export default function HomePage() {
       Pati_PComm: pati,
       ThirdPartyHissaID: hid,
       ThirdPartyHissaPer: hper,
-      SelectedPage: "2",
+      SelectedPage: '2',
     });
     router.push(`/chat?${p.toString()}`);
   };
 
-  const renderContactList = () => {
-    const list = isSearching ? searchResults : contacts;
-    const title = isSearching ? "Search Results" : "Contacts";
-
-    if (loadingContacts) {
-      return (
-        <div className="emsg">
-          <span className="spin"></span> Loading...
-        </div>
-      );
-    }
-
-    if (list.length === 0) {
-      return <div className="emsg">No contacts found</div>;
-    }
-
-    return (
-      <div className="clist">
-        <div className="sec-label">
-          {title} ({list.length})
-        </div>
-        {list.map((c, i) => {
-          const name = c.CustomerName || c.Mobile || "Unknown";
-          const mob = c.Mobile || c.MobileNo || "";
-          const ur = parseInt(c.UnReadTotal) || 0;
-          const isSel = selectedContact && selectedContact.mob === mob;
-
-          return (
-            <div
-              className={`m-2 px-3 citem ${isSel ? "sel" : ""}`}
-              onClick={() => handlePickContact(c)}
-              key={c.CID || i}
-            >
-              <div className="ci">
-                <div className="cn">{name}</div>
-                <div className="cm">{mob}</div>
-              </div>
-              {ur > 0 && <div className="ubadge">{ur}</div>}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+  const activeContactList = isSearching ? searchResults : contacts;
 
   return (
-    <div className="page-container">
-      {/* Top Active Games Bar */}
-      <div className="games-bar">
-        <div className="gb-label">Active Games:</div>
-        <div
-          id="gamesBarContent"
-          style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
-        >
+    <div className="space-y-6">
+      {/* Top Page Header */}
+      <PageHeader
+        title="Dashboard & Game Hub"
+        description="Select a customer contact to launch live bets or view active draw games."
+      />
+
+      {/* Analytics Stat Cards Header */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Active Games"
+          value={games.length}
+          icon={Gamepad2}
+          description="Live drawing games available"
+        />
+        <StatCard
+          title="Total Contacts"
+          value={contacts.length}
+          icon={Users}
+          description="Registered customer contacts"
+        />
+        <StatCard
+          title="Unread Messages"
+          value={games.reduce((acc, g) => acc + (parseInt(g.UnReadTotal) || 0), 0)}
+          icon={MessageSquare}
+          description="Pending chats across all games"
+        />
+        <StatCard
+          title="Platform Status"
+          value="Operational"
+          icon={Activity}
+          trend="up"
+          change="Live"
+          description="Realtime sync active"
+        />
+      </div>
+
+      {/* Active Games Horizontal Live Bar */}
+      <Card className="p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white border-slate-800 shadow-lg">
+        <div className="flex items-center gap-2 mb-3">
+          <Zap className="h-4 w-4 text-emerald-400 animate-pulse" />
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+            Active Games Live Ticker ({games.length})
+          </span>
+        </div>
+        <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-thin">
           {games.length === 0 ? (
-            <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
-              No games
-            </span>
+            <span className="text-xs text-slate-400">No live games scheduled</span>
           ) : (
             games.map((g) => (
-              <div
-                className="game-pill"
-                onClick={() => openMyGame(g.GID, g.GameName)}
+              <button
                 key={g.GID}
+                onClick={() => openMyGame(g.GID, g.GameName)}
+                className="group relative flex items-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-slate-800/80 px-4 py-2 text-xs font-bold transition-all hover:bg-emerald-600 hover:text-white shrink-0 shadow-sm"
               >
-                <span className="gp-name">{g.GameName}</span>
-                <span className="gp-time">{g.DrawTime || ""}</span>
-                {parseInt(g.UnReadTotal) > 0 && (
-                  <span className="gp-badge">{g.UnReadTotal}</span>
+                <span>{g.GameName}</span>
+                {g.DrawTime && (
+                  <span className="flex items-center gap-1 text-[10px] opacity-80">
+                    <Clock className="h-3 w-3" />
+                    {g.DrawTime}
+                  </span>
                 )}
-              </div>
+                {parseInt(g.UnReadTotal) > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white shadow-sm">
+                    {g.UnReadTotal}
+                  </span>
+                )}
+              </button>
             ))
           )}
         </div>
-      </div>
+      </Card>
 
-      <div
-        className="main-layout"
-        style={{ display: "flex", flex: 1, overflow: "hidden" }}
-      >
-        {/* Left Side Customer list Panel */}
-        <div
-          className="contact-panel"
-          id="sidebarPanelContainer"
-          style={{ display: "flex", width: "100%", flexDirection: "column" }}
-        >
-          <div className="search-wrap">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search by contact name or mobile..."
+      {/* Main Two-Panel Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
+        {/* Left Contacts List Panel */}
+        <Card className={panelView === 'ws' ? 'lg:col-span-5 flex flex-col p-4' : 'hidden lg:flex lg:col-span-5 flex-col p-4'}>
+          <div className="mb-4">
+            <Input
+              placeholder="Search contact by name or mobile..."
               value={searchQuery}
               onChange={handleSearchChange}
-              autoFocus
+              leftIcon={<Search className="h-4 w-4" />}
             />
           </div>
-          {renderContactList()}
-        </div>
 
-        {/* Right Side Info Panels (Game list & Rate list) */}
-        <div
-          className="right-panel"
-          id="rightPanelContainer"
-          style={{
-            flex: 1,
-            display: "none",
-            flexDirection: "column",
-            width: "100%",
-          }}
-        >
-          {/* Welcome Screen */}
-          {panelView === "ws" && (
-            <div className="ws">
-              <span
-                className="ws-icon"
-                style={{ fontSize: "4rem", opacity: 0.1 }}
-              >
-                🎯
+          <div className="flex-1 overflow-y-auto max-h-[480px] space-y-2 pr-1">
+            <div className="flex items-center justify-between px-1 pb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                {isSearching ? 'Search Results' : 'Contacts'} ({activeContactList.length})
               </span>
-              <div
-                className="ws-title"
-                style={{ fontSize: "1.1rem", fontWeight: 600 }}
-              >
+            </div>
+
+            {loadingContacts ? (
+              <LoadingSpinner text="Fetching contacts..." />
+            ) : activeContactList.length === 0 ? (
+              <EmptyState title="No contacts found" description="Try searching another contact." />
+            ) : (
+              activeContactList.map((c, i) => {
+                const name = c.CustomerName || c.Mobile || 'Unknown';
+                const mob = c.Mobile || c.MobileNo || '';
+                const ur = parseInt(c.UnReadTotal) || 0;
+                const isSel = selectedContact && selectedContact.mob === mob;
+
+                return (
+                  <div
+                    key={c.CID || i}
+                    onClick={() => handlePickContact(c)}
+                    className={`flex items-center justify-between rounded-xl p-3.5 cursor-pointer transition-all duration-150 border ${isSel
+                        ? 'border-blue-500 bg-blue-50/60 dark:bg-blue-950/30'
+                        : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white font-bold text-sm uppercase">
+                        {name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+                          {name}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                          {mob}
+                        </div>
+                      </div>
+                    </div>
+                    {ur > 0 && (
+                      <Badge variant="primary" dot>
+                        {ur}
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </Card>
+
+        {/* Right Detail Panel */}
+        <Card className={panelView === 'ws' ? 'hidden lg:flex lg:col-span-7 flex-col p-6 items-center justify-center' : 'lg:col-span-7 flex flex-col p-6'}>
+          {/* Welcome Screen */}
+          {panelView === 'ws' && (
+            <div className="text-center py-16 space-y-4">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+                <Sparkles className="h-8 w-8" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                 Susu9 Game Hub
-              </div>
-              <div
-                className="ws-sub"
-                style={{ fontSize: "0.84rem", color: "var(--muted)" }}
-              >
-                Select a customer to view active games
-              </div>
+              </h3>
+              <p className="max-w-xs text-xs text-slate-500 dark:text-slate-400">
+                Select a customer contact from the left list to view active games & start entering bets.
+              </p>
             </div>
           )}
 
-          {/* Customer Games Panel (gp) */}
-          {panelView === "gp" && selectedContact && (
-            <div
-              className="gp"
-              style={{ display: "flex", flexDirection: "column", flex: 1 }}
-            >
-              <div className="ph">
-                <button className="back-btn" onClick={handleBack}>
-                  <i className="fas fa-arrow-left"></i>
-                </button>
-                <div className="hav">
-                  {selectedContact.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div className="hn">{selectedContact.name}</div>
-                  <div className="hs">{selectedContact.mob}</div>
+          {/* Games Selection Panel for picked contact */}
+          {panelView === 'gp' && selectedContact && (
+            <div className="flex flex-col h-full space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <Button variant="ghost" size="icon-sm" onClick={handleBack}>
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white font-bold text-sm uppercase">
+                    {selectedContact.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white capitalize">
+                      {selectedContact.name}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{selectedContact.mob}</p>
+                  </div>
                 </div>
               </div>
 
               {loadingContactGames ? (
-                <div className="emsg">
-                  <span className="spin"></span> Loading games...
-                </div>
+                <LoadingSpinner text="Fetching available games for customer..." />
               ) : selectedContactGames.length === 0 ? (
-                <div className="emsg">No games found</div>
+                <EmptyState title="No games available" description="This customer has no active game rates configured." />
               ) : (
-                <div className="ggrid">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[400px]">
                   {selectedContactGames.map((g) => (
                     <div
-                      className="gcrd"
-                      onClick={() =>
-                        handlePickGame(g.GID, g.GameName, selectedContact.uid)
-                      }
                       key={g.GID}
+                      onClick={() => handlePickGame(g.GID, g.GameName, selectedContact.uid)}
+                      className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 cursor-pointer transition-all hover:border-blue-500 hover:bg-blue-50/50 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500"
                     >
-                      <div className="gcrd-name">{g.GameName}</div>
-                      <div className="gcrd-time">{g.DrawTime || ""}</div>
+                      <div>
+                        <div className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+                          {g.GameName}
+                        </div>
+                        {g.DrawTime && (
+                          <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                            <Clock className="h-3 w-3" />
+                            {g.DrawTime}
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-4 flex items-center justify-between text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
+                        <span>Select Game</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -482,413 +475,46 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Multiple Rates Selection Panel (rp) */}
-          {panelView === "rp" && selectedContact && pendingGameSelection && (
-            <div
-              className="rp"
-              style={{ display: "flex", flexDirection: "column", flex: 1 }}
-            >
-              <div className="ph">
-                <button className="back-btn" onClick={() => showP("gp")}>
-                  <i className="fas fa-arrow-left"></i>
-                </button>
-                <div className="hav">
-                  {selectedContact.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div className="hn">
-                    {selectedContact.name} — {selectedContact.mob}
-                  </div>
-                  <div className="hs" id="rpGame">
-                    Game: {pendingGameSelection.gameName}
+          {/* Rates Selection Panel */}
+          {panelView === 'rp' && selectedContact && pendingGameSelection && (
+            <div className="flex flex-col h-full space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <Button variant="ghost" size="icon-sm" onClick={() => showP('gp')}>
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white capitalize">
+                      {selectedContact.name} ({selectedContact.mob})
+                    </h3>
+                    <p className="text-xs text-blue-600 font-semibold dark:text-blue-400">
+                      Game: {pendingGameSelection.gameName} — Choose Rate
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div
-                className="rlist"
-                style={{ padding: "14px", overflowY: "auto" }}
-              >
+              <div className="space-y-3 overflow-y-auto max-h-[400px]">
                 {gameRates.map((d, idx) => (
                   <div
-                    className="ritem"
-                    onClick={() => handlePickRate(d)}
                     key={d.RateID || idx}
+                    onClick={() => handlePickRate(d)}
+                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 cursor-pointer transition-all hover:border-emerald-500 hover:bg-emerald-50/50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-500"
                   >
                     <div>
-                      <div className="rv">{d.Rate}</div>
-                      <div className="rd">
-                        D: {d.D_PComm}/{d.D_Amt} | A: {d.A_PComm}/{d.A_Amt} |
-                        Patti: {d.Patti}
+                      <div className="text-base font-bold text-slate-900 dark:text-white">{d.Rate}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        D: {d.D_PComm}/{d.D_Amt} | A: {d.A_PComm}/{d.A_Amt} | Patti: {d.Patti}
                       </div>
                     </div>
-                    <span style={{ color: "var(--green)", fontSize: "1.1rem" }}>
-                      →
-                    </span>
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                   </div>
                 ))}
               </div>
             </div>
           )}
-        </div>
+        </Card>
       </div>
-
-      <style jsx>{`
-        .page-container {
-          height: 100%;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          flex: 1;
-          padding: 20px;
-          background: #f4f5f8;
-        }
-        .games-bar {
-          background: transparent;
-          padding: 0 0 14px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-shrink: 0;
-          flex-wrap: wrap;
-        }
-        .gb-label {
-          color: var(--muted);
-          font-size: 0.68rem;
-          letter-spacing: 1.2px;
-          text-transform: uppercase;
-          font-weight: 600;
-          flex-shrink: 0;
-          display: none;
-        }
-        .game-pill {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: #fff;
-          border: 2px solid var(--green);
-          border-radius: 50px;
-          padding: 10px 16px;
-          cursor: pointer;
-          transition: all 0.15s;
-          flex-shrink: 0;
-          white-space: nowrap;
-          font-weight: bolder;
-        }
-        .game-pill:hover,
-        .game-pill:active {
-          background: var(--green);
-          color: #fff;
-        }
-        .gp-name {
-          font-weight: 700;
-          font-size: 0.86rem;
-          color: inherit;
-          text-transform: capitalize;
-        }
-        .gp-time {
-          font-size: 0.7rem;
-          color: var(--muted);
-        }
-        .gp-badge {
-          position: absolute;
-          top: -7px;
-          right: -7px;
-          background: #dc3545;
-          color: #fff;
-          font-size: 0.68rem;
-          font-weight: 700;
-          padding: 2px 7px;
-          border-radius: 50%;
-        }
-        .main-layout {
-          display: flex;
-          flex: 1;
-          overflow: hidden;
-          background: #fff;
-          border-radius: 12px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-          border: 1px solid var(--border);
-        }
-        .contact-panel {
-          width: 100%;
-          background: transparent;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-        }
-        .search-wrap {
-          padding: 14px;
-          display: flex;
-          gap: 6px;
-          border-bottom: 1px solid var(--border);
-        }
-        .search-input {
-          flex: 1;
-          background: #fff;
-          border: 1px solid #ced4da;
-          border-radius: 4px;
-          height: 42px;
-          padding: 0 14px;
-          color: #000;
-          font-size: 0.95rem;
-          font-family: Arial, sans-serif;
-          text-transform: capitalize;
-          outline: none;
-        }
-        .search-input:focus {
-          border-color: #25d366;
-          box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.12);
-        }
-        .clist {
-          flex: 1;
-          overflow-y: auto;
-          scrollbar-width: thin;
-          padding: 14px;
-        }
-        .sec-label {
-          padding: 8px 4px;
-          background: transparent;
-          color: var(--muted);
-          font-size: 0.66rem;
-          letter-spacing: 1.2px;
-          text-transform: uppercase;
-          font-weight: 600;
-          position: sticky;
-          top: 0;
-          z-index: 1;
-        }
-        .citem {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 14px 24px !important;
-          cursor: pointer;
-          background: #fff;
-          border: 1px solid var(--border);
-          border-radius: 15px;
-          margin-bottom: 8px;
-          transition: background 0.12s;
-        }
-        .citem:hover,
-        .citem:active {
-          background: #f5f5f5;
-        }
-        .citem.sel {
-          border-color: var(--green);
-        }
-        .av {
-          display: none;
-        }
-        .ci {
-          flex: 1;
-          min-width: 0;
-        }
-        .cn {
-          font-weight: 700;
-          font-size: 1rem;
-          color: var(--green);
-          text-transform: capitalize;
-          font-family: Arial, sans-serif;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .cm {
-          font-size: 0.86rem;
-          color: #000;
-          font-weight: 700;
-          margin-top: 2px;
-        }
-        .ubadge {
-          background: var(--green);
-          color: #fff;
-          font-size: 0.78rem;
-          font-weight: bolder;
-          padding: 0;
-          width: 25px;
-          height: 25px;
-          line-height: 25px;
-          border-radius: 50%;
-          text-align: center;
-          flex-shrink: 0;
-        }
-        .right-panel {
-          flex: 1;
-          display: none;
-          flex-direction: column;
-          overflow: hidden;
-          background: var(--bg);
-          width: 100%;
-        }
-        .ws {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .gp {
-          flex: 1;
-          display: none;
-          flex-direction: column;
-          overflow: hidden;
-        }
-        .ph {
-          background: var(--panel);
-          padding: 9px 14px;
-          border-bottom: 1px solid var(--border);
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-shrink: 0;
-        }
-        .back-btn {
-          background: none;
-          border: none;
-          color: var(--muted);
-          cursor: pointer;
-          font-size: 1.2rem;
-          padding: 3px 7px;
-          border-radius: 5px;
-          min-width: 36px;
-          min-height: 36px;
-        }
-        .back-btn:hover,
-        .back-btn:active {
-          color: var(--text);
-          background: var(--panel2);
-        }
-        .hav {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background: var(--green2);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 0.92rem;
-          color: #fff;
-          text-transform: uppercase;
-        }
-        .hn {
-          font-weight: 600;
-          font-size: 0.92rem;
-          color: var(--text);
-        }
-        .hs {
-          font-size: 0.72rem;
-          color: var(--muted);
-          margin-top: 1px;
-        }
-        .ggrid {
-          padding: 14px;
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-          gap: 10px;
-          overflow-y: auto;
-          align-content: start;
-        }
-        .gcrd {
-          background: var(--panel);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          padding: 14px 10px;
-          cursor: pointer;
-          transition: all 0.15s;
-          text-align: center;
-        }
-        .gcrd:hover,
-        .gcrd:active {
-          background: var(--green3);
-          border-color: var(--green);
-        }
-        .gcrd-name {
-          font-family: "Rajdhani", sans-serif;
-          font-weight: 700;
-          font-size: 1.3rem;
-          color: var(--green);
-          letter-spacing: 1px;
-        }
-        .gcrd-time {
-          font-size: 0.72rem;
-          color: var(--muted);
-          margin-top: 3px;
-        }
-        .rp {
-          flex: 1;
-          display: none;
-          flex-direction: column;
-          overflow: hidden;
-        }
-        .ritem {
-          background: var(--panel);
-          border: 1px solid var(--border);
-          border-radius: 10px;
-          padding: 11px 15px;
-          margin-bottom: 7px;
-          cursor: pointer;
-          transition: all 0.15s;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        .ritem:hover,
-        .ritem:active {
-          background: var(--green3);
-          border-color: var(--green);
-        }
-        .rv {
-          font-family: "Rajdhani", sans-serif;
-          font-weight: 700;
-          font-size: 1.1rem;
-          color: var(--green);
-        }
-        .rd {
-          font-size: 0.72rem;
-          color: var(--muted);
-          margin-top: 2px;
-        }
-        .emsg {
-          color: var(--muted);
-          text-align: center;
-          padding: 20px;
-          font-size: 0.84rem;
-        }
-        .spin {
-          display: inline-block;
-          width: 14px;
-          height: 14px;
-          border: 2px solid var(--border);
-          border-top-color: var(--green);
-          border-radius: 50%;
-          animation: spin 0.6s linear infinite;
-          vertical-align: middle;
-          margin-right: 6px;
-        }
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        /* Media queries matching home.html layout display logic */
-        @media (min-width: 992px) {
-          .contact-panel {
-            width: 320px;
-            border-right: 1px solid var(--border);
-          }
-          .right-panel {
-            display: flex !important;
-          }
-          .back-btn {
-            display: none;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { KeyRound, Lock, CheckCircle2 } from 'lucide-react';
 import { API } from '../../../utils/api';
+import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Button } from '../../../components/ui/button';
 
 export default function ChangePasswordPage() {
   const [oldPassword, setOldPassword] = useState('');
@@ -9,111 +15,88 @@ export default function ChangePasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const toastFeedback = (msg, isSuccess) => {
-    if (typeof window !== 'undefined' && window.swal) {
-      window.swal(isSuccess ? 'Success!' : 'Wrong Inputs!', msg, {
-        icon: isSuccess ? 'success' : 'error',
-        timer: 1500,
-        buttons: false
-      });
-    } else {
-      alert(`${isSuccess ? 'Success' : 'Error'}: ${msg}`);
-    }
-  };
-
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (!oldPassword || !newPassword || !confirmPassword) {
-      toastFeedback('Saare fields bharna zaroori hai', false);
+      showToast('All password fields are required', 'error');
       return;
     }
     if (newPassword !== confirmPassword) {
-      toastFeedback('New password match nahi kar raha', false);
+      showToast('New passwords do not match', 'error');
       return;
     }
     if (newPassword.length < 4) {
-      toastFeedback('Password too short', false);
+      showToast('Password too short', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      const res = await API.post('/api/admin/change-password', {
+      const res = await API.post('/sapi/admin/change-password', {
         oldPassword,
-        newPassword
+        newPassword,
       });
       if (res && res.success) {
-        toastFeedback('Password successfully changed!', true);
+        showToast('Password updated successfully!');
         setOldPassword('');
         setNewPassword('');
         setConfirmPassword('');
       } else {
-        toastFeedback(res.message || 'Error updating password', false);
+        showToast(res?.message || 'Error updating password', 'error');
       }
     } catch (err) {
-      toastFeedback('Server error. Please try again.', false);
+      showToast('Server error. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="content" style={{ padding: '20px 0' }}>
-      <div className="row">
-        <div className="col-md-12">
-          <div className="card" style={{ maxWidth: '420px', margin: '0 auto' }}>
-            <div className="card-header">
-              <div className="card-title" style={{ fontWeight: 'bold' }}>Change Password</div>
+    <div className="space-y-6 max-w-xl mx-auto">
+      <PageHeader
+        title="Security & Password Setup"
+        description="Update your account security credentials and access password."
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Change Password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <Input
+              label="Current Password"
+              type="password"
+              placeholder="Enter current password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              leftIcon={<KeyRound className="h-4 w-4" />}
+            />
+            <Input
+              label="New Password"
+              type="password"
+              placeholder="Enter new password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              leftIcon={<Lock className="h-4 w-4" />}
+            />
+            <Input
+              label="Confirm New Password"
+              type="password"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              leftIcon={<Lock className="h-4 w-4" />}
+            />
+
+            <div className="pt-2">
+              <Button type="submit" isLoading={loading} className="w-full" leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+                UPDATE PASSWORD
+              </Button>
             </div>
-            <form onSubmit={handleChangePassword}>
-              <div className="card-body">
-                <div className="form-group">
-                  <label htmlFor="oldPwd" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>Current Password</label>
-                  <input 
-                    type="password" 
-                    className="form-control" 
-                    id="oldPwd" 
-                    placeholder="Enter current password"
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="newPwd" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>New Password</label>
-                  <input 
-                    type="password" 
-                    className="form-control" 
-                    id="newPwd" 
-                    placeholder="Enter new password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="confPwd" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>Confirm Password</label>
-                  <input 
-                    type="password" 
-                    className="form-control" 
-                    id="confPwd" 
-                    placeholder="Confirm new password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="card-action">
-                <button 
-                  type="submit" 
-                  className="btn btn-success" 
-                  disabled={loading}
-                >
-                  {loading ? 'Submitting...' : 'Submit'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

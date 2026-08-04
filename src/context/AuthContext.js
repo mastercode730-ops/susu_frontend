@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
 
   const fetchSession = async () => {
     try {
-      const res = await API.get('/api/auth/me');
+      const res = await API.get('/sapi/auth/me');
       if (res && res.success) {
         setUser(res.user);
       } else {
@@ -36,11 +36,11 @@ export function AuthProvider({ children }) {
   }, [pathname]);
 
   const login = async (mobileOrId, password, isStaff) => {
-    const endpoint = isStaff ? '/api/auth/subuser-login' : '/api/auth/login';
-    const payload = isStaff 
-      ? { subUserID: mobileOrId, password } 
+    const endpoint = isStaff ? '/sapi/auth/subuser-login' : '/sapi/auth/login';
+    const payload = isStaff
+      ? { subUserID: mobileOrId, password }
       : { mobile: mobileOrId, password };
-      
+
     const res = await API.post(endpoint, payload);
     if (res && res.success) {
       setUser(res.user);
@@ -51,7 +51,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await API.post('/api/auth/logout', {});
+      await API.post('/sapi/auth/logout', {});
     } catch (e) {
       console.error(e);
     }

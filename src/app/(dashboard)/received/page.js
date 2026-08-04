@@ -1,19 +1,28 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Inbox, MessageSquare, Trophy, Hash, Search, Zap, CheckCircle2 } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Select } from '../../../components/ui/select';
+import { Button } from '../../../components/ui/button';
+import { Switch } from '../../../components/ui/switch';
+import { Badge } from '../../../components/ui/badge';
+import { Dialog } from '../../../components/ui/dialog';
+import { LoadingSpinner } from '../../../components/ui/spinner';
+import { EmptyState } from '../../../components/ui/empty-state';
 
 export default function ReceivedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Query Params
   const queryGid = searchParams.get('GID') || '';
   const queryGameName = searchParams.get('Game') || '';
 
-  // State Variables
   const [gid, setGid] = useState(queryGid);
   const [gameName, setGameName] = useState(queryGameName);
   const [games, setGames] = useState([]);
@@ -24,18 +33,15 @@ export default function ReceivedPage() {
   const [autoAccept, setAutoAccept] = useState(false);
   const [loadingContacts, setLoadingContacts] = useState(false);
 
-  // Result modal state
   const [showResultModal, setShowResultModal] = useState(false);
   const [resultDate, setResultDate] = useState('');
   const [resultVal, setResultVal] = useState('');
 
-  // Dropdown customer state
   const [customerList, setCustomerList] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [showRatesOverlay, setShowRatesOverlay] = useState(false);
   const [pendingRates, setPendingRates] = useState([]);
 
-  // Load Initial Configuration
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     setResultDate(today);
@@ -43,7 +49,6 @@ export default function ReceivedPage() {
     fetchReceiverList();
   }, []);
 
-  // When GID changes, reload contacts
   useEffect(() => {
     if (gid) {
       loadContactsList(gid, viewAll);
@@ -51,15 +56,13 @@ export default function ReceivedPage() {
     }
   }, [gid, viewAll]);
 
-  // Fetch all games for fallback dropdown selection
   const fetchGames = async () => {
     try {
-      const r = await API.get('/api/received/games');
+      const r = await API.get('/sapi/received/games');
       if (r && r.success) {
         setGames(r.data || []);
-        // If query GameName is provided but not in games list, we can still use it
         if (queryGid) {
-          const matched = (r.data || []).find(g => String(g.GID) === String(queryGid));
+          const matched = (r.data || []).find((g) => String(g.GID) === String(queryGid));
           if (matched) setGameName(matched.GameName);
         }
       }
@@ -68,10 +71,9 @@ export default function ReceivedPage() {
     }
   };
 
-  // Fetch searchable customer dropdown list
   const fetchReceiverList = async () => {
     try {
-      const r = await API.get('/api/received/receiver-list');
+      const r = await API.get('/sapi/received/receiver-list');
       if (r && r.success) {
         setCustomerList(r.data || []);
       }
@@ -80,13 +82,14 @@ export default function ReceivedPage() {
     }
   };
 
-  // Load auto accept toggle status
   const loadAutoAcceptStatus = async (gameId) => {
     try {
-      const r = await API.get(`/api/game/auto-accept-status?gid=${gameId}`);
+      const r = await API.get(`/sapi/game/auto-accept-status?gid=${gameId}`);
       if (r && r.success) {
         const matchedStatus = r.data?.IsAcceptedStatus;
-        setAutoAccept(matchedStatus === true || matchedStatus === 'True' || matchedStatus === 'true' || matchedStatus === 1);
+        setAutoAccept(
+          matchedStatus === true || matchedStatus === 'True' || matchedStatus === 'true' || matchedStatus === 1
+        );
       }
     } catch (e) {
       console.error(e);
@@ -97,7 +100,7 @@ export default function ReceivedPage() {
     const checked = e.target.checked;
     setAutoAccept(checked);
     try {
-      await API.post('/api/received/accept-status', { gid, status: checked });
+      await API.post('/sapi/received/accept-status', { gid, status: checked });
       showToast(checked ? 'Auto Accept Enabled' : 'Auto Accept Disabled');
     } catch (e) {
       console.error(e);
@@ -105,7 +108,6 @@ export default function ReceivedPage() {
     }
   };
 
-  // Load Contacts list
   const loadContactsList = async (gameId, showAll) => {
     setLoadingContacts(true);
     setContacts([]);
@@ -113,10 +115,11 @@ export default function ReceivedPage() {
     setSearchQuery('');
 
     const todayIST = new Date(Date.now() + 5.5 * 3600000).toISOString().split('T')[0];
-    const dateParam = todayIST;
 
     try {
-      const r = await API.get(`/api/received/contacts?gid=${gameId}&viewAll=${showAll}&date=${encodeURIComponent(dateParam)}`);
+      const r = await API.get(
+        `/sapi/received/contacts?gid=${gameId}&viewAll=${showAll}&date=${encodeURIComponent(todayIST)}`
+      );
       if (r && r.success) {
         const data = r.data || [];
         setContacts(data);
@@ -135,37 +138,33 @@ export default function ReceivedPage() {
     }
   };
 
-  // Filter contacts by query
   const handleSearchQueryChange = (e) => {
     const q = e.target.value;
     setSearchQuery(q);
     if (!q.trim()) {
       setContacts(contactsPool);
     } else {
-      const filtered = contactsPool.filter(c => 
-        (c.CustomerName || '').toLowerCase().includes(q.toLowerCase()) ||
-        (c.Mobile || '').toLowerCase().includes(q.toLowerCase())
+      const filtered = contactsPool.filter(
+        (c) =>
+          (c.CustomerName || '').toLowerCase().includes(q.toLowerCase()) ||
+          (c.Mobile || '').toLowerCase().includes(q.toLowerCase())
       );
       setContacts(filtered);
     }
   };
 
-  // Handle manual customer search selector change
   const handleCustomerSelect = async (e) => {
     const cid = e.target.value;
     setSelectedCustomerId(cid);
     if (!cid) return;
 
     try {
-      const r = await API.get(`/api/received/customer-rates?cid=${cid}`);
+      const r = await API.get(`/sapi/received/customer-rates?cid=${cid}`);
       if (r && r.success && r.data?.length > 0) {
         const dt = r.data;
         if (dt.length === 1) {
-          // Redirect straight to chat
-          const d = dt[0];
-          handleRedirectToChat(d, d.Rate);
+          handleRedirectToChat(dt[0], dt[0].Rate);
         } else {
-          // Show rate selection overlay
           setPendingRates(dt);
           setShowRatesOverlay(true);
         }
@@ -195,18 +194,16 @@ export default function ReceivedPage() {
       ThirdPartyDaraComm: cust.ThirdPartyDaraComm || '0',
       ThirdPartyAkharComm: cust.ThirdPartyAkharComm || '0',
       SelectedPage: '1',
-      LastMsgDate: todayIST
+      LastMsgDate: todayIST,
     });
     router.push(`/chat?${p.toString()}`);
   };
 
-  // Save Game Result Modal handlers
   const handleOpenResultModal = async () => {
     setShowResultModal(true);
-    // Fetch result for the selected date
     try {
-      const r = await API.get(`/api/game/result?gid=${gid}&date=${encodeURIComponent(resultDate)}`);
-      setResultVal((r && r.success && r.data?.Result != null) ? String(r.data.Result) : '');
+      const r = await API.get(`/sapi/game/result?gid=${gid}&date=${encodeURIComponent(resultDate)}`);
+      setResultVal(r && r.success && r.data?.Result != null ? String(r.data.Result) : '');
     } catch (e) {
       console.error(e);
     }
@@ -216,8 +213,8 @@ export default function ReceivedPage() {
     const dVal = e.target.value;
     setResultDate(dVal);
     try {
-      const r = await API.get(`/api/game/result?gid=${gid}&date=${encodeURIComponent(dVal)}`);
-      setResultVal((r && r.success && r.data?.Result != null) ? String(r.data.Result) : '');
+      const r = await API.get(`/sapi/game/result?gid=${gid}&date=${encodeURIComponent(dVal)}`);
+      setResultVal(r && r.success && r.data?.Result != null ? String(r.data.Result) : '');
     } catch (e) {
       console.error(e);
     }
@@ -229,7 +226,7 @@ export default function ReceivedPage() {
       return;
     }
     try {
-      const r = await API.post('/api/game/save-result', { result: resultVal.trim(), gameID: gid, date: resultDate });
+      const r = await API.post('/sapi/game/save-result', { result: resultVal.trim(), gameID: gid, date: resultDate });
       if (r && r.success) {
         showToast('Result saved successfully!');
         setShowResultModal(false);
@@ -243,208 +240,148 @@ export default function ReceivedPage() {
   };
 
   return (
-    <div className="content">
-      {/* 1. Game Selection dropdown if not passed in query */}
+    <div className="space-y-6">
+      <PageHeader
+        title="Received Bets & Game Monitor"
+        description="Monitor live incoming chats, toggle auto accept status, and declare results."
+      />
+
+      {/* Game Selector */}
       {!queryGid && (
-        <div className="card" style={{ marginBottom: '14px' }}>
-          <div className="card-body" style={{ padding: '14px' }}>
-            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>Select Game</label>
-            <select 
-              className="form-control" 
-              value={gid} 
+        <Card>
+          <CardContent className="p-4">
+            <Select
+              label="Select Game"
+              value={gid}
               onChange={(e) => {
                 const targetGid = e.target.value;
                 setGid(targetGid);
-                const g = games.find(x => String(x.GID) === String(targetGid));
+                const g = games.find((x) => String(x.GID) === String(targetGid));
                 if (g) setGameName(g.GameName);
               }}
             >
               <option value="">-- Choose a Game --</option>
-              {games.map(g => (
-                <option key={g.GID} value={g.GID}>{g.GameName}</option>
+              {games.map((g) => (
+                <option key={g.GID} value={g.GID}>
+                  {g.GameName}
+                </option>
               ))}
-            </select>
-          </div>
-        </div>
+            </Select>
+          </CardContent>
+        </Card>
       )}
 
       {gid && (
         <>
-          {/* Search Customer Selector */}
-          <div className="card" style={{ marginBottom: '14px' }}>
-            <div className="card-body" style={{ padding: '14px' }}>
-              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>Search Customer</label>
-              <select 
-                className="form-control"
-                value={selectedCustomerId}
-                onChange={handleCustomerSelect}
-              >
+          {/* Top Control Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+            <Card className="p-4 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-semibold text-slate-500">Active Game</span>
+                <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400 capitalize">{gameName}</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => router.push(`/yantri?GameID=${gid}`)} leftIcon={<Hash className="h-4 w-4" />}>
+                  Yantri
+                </Button>
+                <Button size="sm" variant="primary" onClick={handleOpenResultModal} leftIcon={<Trophy className="h-4 w-4" />}>
+                  Result
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-4 flex items-center justify-between">
+              <Switch label="Auto Accept Bets" checked={autoAccept} onChange={handleToggleAutoAccept} />
+              <Zap className="h-5 w-5 text-emerald-500 animate-pulse" />
+            </Card>
+
+            <Card className="p-4">
+              <Select label="Quick Customer Search" value={selectedCustomerId} onChange={handleCustomerSelect}>
                 <option value="">Select Customer Name</option>
-                {customerList.map(c => (
-                  <option key={c.CID} value={c.CID}>{c.CustomerName}</option>
+                {customerList.map((c) => (
+                  <option key={c.CID} value={c.CID}>
+                    {c.CustomerName}
+                  </option>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </Card>
           </div>
 
-          {/* Rates Selection popup overlay */}
-          {showRatesOverlay && (
-            <div style={{ padding: '14px', background: '#fff', border: '1px solid #ced4da', borderRadius: '8px', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontWeight: 'bold' }}>Choose Rate for Customer:</span>
-                <button 
-                  className="btn btn-sm btn-danger" 
-                  onClick={() => {
-                    setShowRatesOverlay(false);
-                    setSelectedCustomerId('');
-                  }}
-                >
-                  Close
-                </button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {pendingRates.map((d, i) => (
-                  <button 
-                    key={i} 
-                    className="btn btn-success" 
-                    onClick={() => {
-                      setShowRatesOverlay(false);
-                      setSelectedCustomerId('');
-                      handleRedirectToChat(d, d.Rate);
-                    }}
+          {/* Filter Tabs & Search */}
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+                  <button
+                    onClick={() => setViewAll(false)}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${!viewAll ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-900 dark:text-white' : 'text-slate-500'}`}
                   >
-                    Rate: {d.Rate}
+                    Today
                   </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Top Bar with actions */}
-          <div className="card" style={{ marginBottom: '14px' }}>
-            <div className="card-body" style={{ padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <button className="btn btn-info btn-sm" onClick={() => router.push(`/yantri?GameID=${gid}`)}>
-                Yantri 📅
-              </button>
-              
-              <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--green2)' }}>
-                {gameName}
-              </span>
-
-              <button className="btn btn-info btn-sm" onClick={handleOpenResultModal}>
-                🏆 Result
-              </button>
-            </div>
-          </div>
-
-          {/* Auto Accept Switch */}
-          <div className="card" style={{ marginBottom: '14px' }}>
-            <div className="card-body" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Auto Accept Incoming Chats:</span>
-              <div className="custom-control custom-switch">
-                <input 
-                  type="checkbox" 
-                  className="custom-control-input" 
-                  id="customSwitchAuto"
-                  checked={autoAccept}
-                  onChange={handleToggleAutoAccept}
+                  <button
+                    onClick={() => setViewAll(true)}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${viewAll ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-900 dark:text-white' : 'text-slate-500'}`}
+                  >
+                    View All
+                  </button>
+                </div>
+                <Input
+                  placeholder="Search contact or mobile..."
+                  value={searchQuery}
+                  onChange={handleSearchQueryChange}
+                  leftIcon={<Search className="h-4 w-4" />}
+                  className="max-w-xs"
                 />
-                <label className="custom-control-label" htmlFor="customSwitchAuto" style={{ cursor: 'pointer' }}></label>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Today / View All Filter controls */}
-          <div className="row" style={{ marginBottom: '14px', display: 'flex', gap: '10px', padding: '0 15px' }}>
-            <button 
-              className={`btn flex-fill ${!viewAll ? 'btn-success' : 'btn-outline-success'}`}
-              onClick={() => setViewAll(false)}
-            >
-              Today
-            </button>
-            <button 
-              className={`btn flex-fill ${viewAll ? 'btn-success' : 'btn-outline-success'}`}
-              onClick={() => setViewAll(true)}
-            >
-              View All
-            </button>
-          </div>
-
-          {/* Search bar input */}
-          <div className="card" style={{ marginBottom: '14px' }}>
-            <div className="card-body" style={{ padding: '10px 14px' }}>
-              <input 
-                type="text" 
-                className="form-control" 
-                placeholder="Search Contact Name / Mobile..." 
-                value={searchQuery}
-                onChange={handleSearchQueryChange}
-              />
-            </div>
-          </div>
-
-          {/* Contacts repeater card log */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* Contacts Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {loadingContacts ? (
-              <div className="card text-center" style={{ padding: '24px' }}>
-                <span className="spin"></span> Loading WhatsApp chat logs...
+              <div className="col-span-full py-12">
+                <LoadingSpinner text="Fetching active game contacts..." />
               </div>
             ) : contacts.length === 0 ? (
-              <div className="card text-center" style={{ padding: '24px', color: 'var(--muted)' }}>
-                No active records found.
+              <div className="col-span-full">
+                <EmptyState title="No active received bets" description="No customer messages for this game." />
               </div>
             ) : (
               contacts.map((c, i) => {
                 const unread = parseInt(c.UnReadTotal) || 0;
                 return (
-                  <div 
+                  <Card
                     key={i}
                     onClick={() => {
                       if (c.CustomerName === 'ADD Contact') {
                         router.push(`/customer?Mobile=${c.Mobile}`);
                       } else {
-                        const todayIST = new Date(Date.now() + 5.5 * 3600000).toISOString().split('T')[0];
                         handleRedirectToChat(c, c.Rate);
                       }
                     }}
-                    className="card"
-                    style={{ cursor: 'pointer', border: '1px solid #ced4da', borderRadius: '12px', transition: 'all 0.1s' }}
+                    className="p-4 cursor-pointer hover:border-blue-500 transition-all group"
                   >
-                    <div className="card-body" style={{ padding: '14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <span style={{ fontSize: '2rem', color: '#25d366' }}>💬</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--green2)', textTransform: 'capitalize' }}>
-                          {c.CustomerName}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                          <MessageSquare className="h-5 w-5" />
                         </div>
-                        <div style={{ fontSize: '0.86rem', color: '#000', fontWeight: 600 }}>
-                          {c.Mobile} <span style={{ fontWeight: 'normal', color: 'var(--muted)', fontSize: '0.76rem' }}>({c.LastMsgDateAmount})</span>
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white capitalize group-hover:text-blue-600 transition-colors">
+                            {c.CustomerName}
+                          </h4>
+                          <p className="text-xs text-slate-500 font-mono">{c.Mobile}</p>
                         </div>
-                        {c.Rate && (
-                          <div style={{ fontSize: '0.74rem', color: 'green', fontStyle: 'italic', marginTop: '2px' }}>
-                            Rate: {c.Rate} <span style={{ color: '#000', fontStyle: 'normal' }}>| Updated: {c.LT}</span>
-                          </div>
-                        )}
                       </div>
-                      {unread > 0 && (
-                        <span 
-                          style={{
-                            background: 'red',
-                            color: 'white',
-                            fontWeight: 'bold',
-                            borderRadius: '50%',
-                            width: '24px',
-                            height: '24px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.72rem'
-                          }}
-                        >
-                          {unread}
-                        </span>
-                      )}
+                      {unread > 0 && <Badge variant="danger" dot>{unread}</Badge>}
                     </div>
-                  </div>
+                    {c.Rate && (
+                      <div className="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between dark:border-slate-800">
+                        <span>Rate: <strong className="text-emerald-600">{c.Rate}</strong></span>
+                        <span>{c.LT}</span>
+                      </div>
+                    )}
+                  </Card>
                 );
               })
             )}
@@ -452,51 +389,33 @@ export default function ReceivedPage() {
         </>
       )}
 
-      {/* Result Add Modal */}
-      {showResultModal && (
-        <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Save Game Result</h5>
-                <button type="button" className="close" onClick={() => setShowResultModal(false)}>
-                  <span>&times;</span>
-                </button>
-              </div>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label>Date</label>
-                  <input 
-                    type="date" 
-                    className="form-control" 
-                    value={resultDate}
-                    onChange={handleResultDateChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Result (2 digits)</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="Enter Result"
-                    value={resultVal}
-                    onChange={(e) => setResultVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowResultModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleSubmitResult}>Save Result</button>
-              </div>
-            </div>
+      {/* Result Modal */}
+      <Dialog
+        isOpen={showResultModal}
+        onClose={() => setShowResultModal(false)}
+        title="Declare Winning Result"
+        description="Enter the 2-digit winning result number for this game."
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <Input label="Draw Date" type="date" value={resultDate} onChange={handleResultDateChange} />
+          <Input
+            label="Winning Result (2 digits)"
+            placeholder="e.g. 74"
+            maxLength={2}
+            value={resultVal}
+            onChange={(e) => setResultVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+          />
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <Button variant="outline" onClick={() => setShowResultModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitResult} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+              Save Result
+            </Button>
           </div>
         </div>
-      )}
-
-      <style jsx>{`
-        .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
-        @keyframes spin { to { transform: rotate(360deg) } }
-      `}</style>
+      </Dialog>
     </div>
   );
 }

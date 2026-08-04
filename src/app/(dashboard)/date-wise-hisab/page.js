@@ -1,8 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Calendar, Search, ArrowUpRight, Scale } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent, StatCard } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Button } from '../../../components/ui/button';
+import { DataTable } from '../../../components/tables/DataTable';
+import { Dialog } from '../../../components/ui/dialog';
+import { LoadingSpinner } from '../../../components/ui/spinner';
+import { formatCurrency } from '../../../lib/utils';
 
 function toApiDate(dateStr) {
   if (!dateStr) return '';
@@ -34,7 +43,6 @@ export default function DateWiseHisabPage() {
   const [records, setRecords] = useState([]);
   const [totals, setTotals] = useState({ sale: 0, bal: 0 });
 
-  // History modal state
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState('Hisab History');
   const [modalLoading, setModalLoading] = useState(false);
@@ -46,7 +54,7 @@ export default function DateWiseHisabPage() {
 
   const fetchLatestDate = async () => {
     try {
-      const r = await API.get('/api/hisab/latest-date');
+      const r = await API.get('/sapi/hisab/latest-date');
       if (r && r.success && r.data) {
         const inputD = toInputDate(r.data);
         setFromDate(inputD);
@@ -75,11 +83,13 @@ export default function DateWiseHisabPage() {
     const tDate = toApiDate(end);
 
     try {
-      const r = await API.get(`/api/hisab/date-wise-summary?fromDate=${encodeURIComponent(fDate)}&toDate=${encodeURIComponent(tDate)}`);
+      const r = await API.get(
+        `/sapi/hisab/date-wise-summary?fromDate=${encodeURIComponent(fDate)}&toDate=${encodeURIComponent(tDate)}`
+      );
       if (r && r.success) {
         const list = r.data || [];
         setRecords(list);
-        
+
         const totSale = list.reduce((s, row) => s + (parseFloat(row.Total_Amount) || 0), 0);
         const totBal = list.reduce((s, row) => s + (parseFloat(row.Balance) || 0), 0);
         setTotals({ sale: totSale, bal: totBal });
@@ -108,13 +118,15 @@ export default function DateWiseHisabPage() {
     const typeSelf = row.Self || 0;
 
     try {
-      const r = await API.get(`/api/hisab/date-wise-user?uid=${uid}&fromDate=${encodeURIComponent(fDate)}&toDate=${encodeURIComponent(tDate)}`);
+      const r = await API.get(
+        `/sapi/hisab/date-wise-user?uid=${uid}&fromDate=${encodeURIComponent(fDate)}&toDate=${encodeURIComponent(tDate)}`
+      );
       if (r && r.success && r.data?.length > 0) {
         const data = r.data;
-        const rowIdx = (data.length === 2) ? parseInt(typeSelf) : 0;
+        const rowIdx = data.length === 2 ? parseInt(typeSelf) : 0;
         const d = data[rowIdx] || data[0];
 
-        setModalTitle(`${d.Mobile || ''} ${fDate} To ${tDate} Hisab History`);
+        setModalTitle(`${d.Mobile || ''} (${fDate} to ${tDate}) Hisab History`);
         setModalData(d);
       } else {
         setModalTitle('No Data Found!');
@@ -127,187 +139,141 @@ export default function DateWiseHisabPage() {
     }
   };
 
+  const columns = [
+    {
+      header: 'Customer',
+      accessorKey: 'Mobile',
+      cell: ({ row }) => (
+        <button
+          onClick={() => handleShowHistory(row.original)}
+          className="font-bold text-xs text-blue-600 hover:underline dark:text-blue-400"
+        >
+          {row.original.Mobile || row.original.fSenderID}
+        </button>
+      ),
+    },
+    {
+      header: 'Total Sale',
+      accessorKey: 'Total_Amount',
+      cell: ({ row }) => (
+        <span className="font-bold text-xs text-slate-900 dark:text-white">
+          {formatCurrency(parseFloat(row.original.Total_Amount) || 0)}
+        </span>
+      ),
+    },
+    {
+      header: 'Net Balance',
+      accessorKey: 'Balance',
+      cell: ({ row }) => {
+        const bal = parseFloat(row.original.Balance) || 0;
+        return (
+          <span className={`font-bold text-xs ${bal < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+            {formatCurrency(bal)}
+          </span>
+        );
+      },
+    },
+  ];
+
   return (
-    <div className="content">
-      {/* Date Filters form Card */}
-      <div className="card" style={{ marginBottom: '16px' }}>
-        <div className="card-body" style={{ padding: '14px' }}>
-          <div className="row">
-            <div className="col-md-5" style={{ marginBottom: '12px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontWeight: 'bold' }}>From Date</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="col-md-5" style={{ marginBottom: '12px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontWeight: 'bold' }}>To Date</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="col-md-2" style={{ display: 'flex', alignItems: 'flex-end', marginBottom: '12px' }}>
-              <button className="btn btn-success btn-block" onClick={handleSearch} disabled={loading}>
-                Search
-              </button>
-            </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Date Wise Hisab Report"
+        description="View date-range financial summaries and detailed ledger cards for customers."
+      />
+
+      {/* Summary Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <StatCard
+          title="Date Range Total Sale"
+          value={formatCurrency(totals.sale)}
+          icon={ArrowUpRight}
+          description="Total turnover in date range"
+        />
+        <StatCard
+          title="Date Range Net Balance"
+          value={formatCurrency(totals.bal)}
+          icon={Scale}
+          trend={totals.bal >= 0 ? 'up' : 'down'}
+          change={totals.bal >= 0 ? 'Profit' : 'Deficit'}
+          description="Net balance position"
+        />
+      </div>
+
+      {/* Filter Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Date Range Criteria</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+            <Input label="From Date" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+            <Input label="To Date" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+            <Button onClick={handleSearch} isLoading={loading} leftIcon={<Search className="h-4 w-4" />}>
+              SEARCH HISAB
+            </Button>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Summary grid card */}
-      <div className="card">
-        <div className="card-header" style={{ padding: '12px 14px' }}>
-          <div className="card-title" style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Show Date Wise Hisab</div>
-        </div>
-        <div className="table-responsive">
-          <table className="table-bordered-bd-primary table-hover" style={{ textTransform: 'capitalize', textAlign: 'center', width: '100%', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'LightGray' }}>
-                <th style={{ padding: '8px' }}>Customer</th>
-                <th>Sale</th>
-                <th>Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={3} style={{ padding: '24px', color: 'var(--muted)' }}>
-                    <span className="spin"></span> Loading Date Wise summaries...
-                  </td>
-                </tr>
-              ) : records.length === 0 ? (
-                <tr>
-                  <td colSpan={3} style={{ padding: '24px', color: 'var(--muted)' }}>
-                    Click search to view data.
-                  </td>
-                </tr>
-              ) : (
-                records.map((r, i) => (
-                  <tr key={i}>
-                    <td style={{ padding: '8px' }}>
-                      <button 
-                        onClick={() => handleShowHistory(r)}
-                        style={{ background: 'none', border: 'none', color: 'var(--green2)', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}
-                      >
-                        {r.Mobile || r.fSenderID}
-                      </button>
-                    </td>
-                    <td style={{ fontWeight: 600 }}>{r.Total_Amount || 0}</td>
-                    <td style={{ fontWeight: 600 }}>{r.Balance || 0}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-            {records.length > 0 && (
-              <tfoot style={{ backgroundColor: 'LightGray', fontWeight: 'bold' }}>
-                <tr>
-                  <td style={{ padding: '8px' }}>Total</td>
-                  <td>{totals.sale}</td>
-                  <td>{totals.bal}</td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
-      </div>
+      {/* Table Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Date Wise Hisab Summary ({records.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            columns={columns}
+            data={records}
+            isLoading={loading}
+            searchPlaceholder="Search customer or mobile..."
+          />
+        </CardContent>
+      </Card>
 
-      {/* History Detail Modal */}
-      {showModal && (
-        <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title" style={{ fontWeight: 'bold' }}>{modalTitle}</h5>
-                <button type="button" className="close" onClick={() => setShowModal(false)}>
-                  <span>&times;</span>
-                </button>
+      {/* Modal Details */}
+      <Dialog
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={modalTitle}
+        description="Individual customer ledger breakdown."
+        maxWidth="max-w-md"
+      >
+        {modalLoading ? (
+          <LoadingSpinner text="Fetching user history details..." />
+        ) : !modalData ? (
+          <p className="text-center text-xs text-slate-500 py-6">No matching record detail.</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex justify-between py-1.5 font-semibold">
+                <span className="text-slate-500">Total Sale</span>
+                <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(modalData.Total_Amount)}</span>
               </div>
-              <div className="modal-body" style={{ padding: '14px' }}>
-                {modalLoading ? (
-                  <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>
-                    <span className="spin"></span> Loading user summary history...
-                  </div>
-                ) : !modalData ? (
-                  <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>
-                    No record detail matches this criteria.
-                  </div>
-                ) : (
-                  <div className="table-responsive">
-                    <table className="table table-bordered table-striped" style={{ textTransform: 'capitalize', width: '100%' }}>
-                      <thead>
-                        <tr style={{ background: 'LightGray' }}>
-                          <th style={{ padding: '8px' }}>Detail</th>
-                          <th style={{ textAlign: 'right' }}>Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td style={{ padding: '8px' }}>Total Sale</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{modalData.Total_Amount || 0}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: '8px' }}>Dara Sale</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{modalData.D_Sale || 0}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: '8px' }}>Akhar Sale</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{modalData.A_Sale || 0}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: '8px' }}>Comm</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{modalData.Commision || 0}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: '8px' }}>Balance</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{modalData.SaleBalance || modalData.Balance || 0}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: '8px' }}>Dara Open</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{modalData.O_Dara || 0}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: '8px' }}>Akhar Open</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{modalData.O_Akhar || 0}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: '8px' }}>Win Amount</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{modalData.WinAmount || 0}</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: '8px' }}>Hissa</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{modalData.Pati || 0}</td>
-                        </tr>
-                        <tr style={{ background: '#f4f5f8' }}>
-                          <td style={{ padding: '8px', fontWeight: 'bold', color: 'var(--green2)' }}>Net Balance</td>
-                          <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--green2)' }}>{modalData.Balance || 0}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+              <div className="flex justify-between py-1.5 font-semibold">
+                <span className="text-slate-500">Dara Sale</span>
+                <span>{formatCurrency(modalData.D_Sale)}</span>
               </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
+              <div className="flex justify-between py-1.5 font-semibold">
+                <span className="text-slate-500">Akhar Sale</span>
+                <span>{formatCurrency(modalData.A_Sale)}</span>
+              </div>
+              <div className="flex justify-between py-1.5 font-semibold">
+                <span className="text-slate-500">Commission</span>
+                <span>{formatCurrency(modalData.Commision)}</span>
+              </div>
+              <div className="flex justify-between py-1.5 font-semibold">
+                <span className="text-slate-500">Win Amount</span>
+                <span className="text-emerald-600">{formatCurrency(modalData.WinAmount)}</span>
+              </div>
+              <div className="flex justify-between py-1.5 font-bold border-t border-slate-200 dark:border-slate-800 pt-2 text-sm">
+                <span className="text-blue-600 dark:text-blue-400">Net Balance</span>
+                <span className="text-blue-600 dark:text-blue-400">{formatCurrency(modalData.Balance)}</span>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      <style jsx>{`
-        .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
-        @keyframes spin { to { transform: rotate(360deg) } }
-      `}</style>
+        )}
+      </Dialog>
     </div>
   );
 }

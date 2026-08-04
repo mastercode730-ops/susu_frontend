@@ -2,8 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { UserX, Search } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent, StatCard } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Select } from '../../../components/ui/select';
+import { Button } from '../../../components/ui/button';
+import { DataTable } from '../../../components/tables/DataTable';
 
 function toApiDate(dateStr) {
   if (!dateStr) return '';
@@ -16,18 +23,6 @@ function toApiDate(dateStr) {
   return `${day}/${month}/${year}`;
 }
 
-function toInputDate(apiDate) {
-  if (!apiDate) return '';
-  const months = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
-  const parts = apiDate.split('/');
-  if (parts.length === 3) {
-    const month = months[parts[1]] || '01';
-    const day = parts[0].padStart(2, '0');
-    return `${parts[2]}-${month}-${day}`;
-  }
-  return apiDate;
-}
-
 export default function AbsentCustomersPage() {
   const router = useRouter();
 
@@ -36,7 +31,6 @@ export default function AbsentCustomersPage() {
   const [games, setGames] = useState([]);
   const [selectedGameId, setSelectedGameId] = useState('');
   const [absentList, setAbsentList] = useState([]);
-  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
 
   useEffect(() => {
     fetchSessionUser();
@@ -44,7 +38,7 @@ export default function AbsentCustomersPage() {
 
   const fetchSessionUser = async () => {
     try {
-      const r = await API.get('/api/auth/me');
+      const r = await API.get('/sapi/auth/me');
       if (r && r.user) {
         if (r.user.SubUID) {
           router.push('/home');
@@ -60,7 +54,7 @@ export default function AbsentCustomersPage() {
 
   const loadGames = async () => {
     try {
-      const r = await API.get('/api/game');
+      const r = await API.get('/sapi/game');
       if (r && r.data) {
         setGames(r.data);
         if (r.data.length > 0) {
@@ -74,32 +68,34 @@ export default function AbsentCustomersPage() {
 
   const fetchLatestDate = async () => {
     try {
-      const r = await API.get('/api/hisab/latest-date');
+      const r = await API.get('/sapi/hisab/latest-date');
       const today = new Date().toISOString().split('T')[0];
       if (r && r.success && r.data) {
-        setSelectedDate(toInputDate(r.data));
-      } else {
-        setSelectedDate(today);
+        const parts = r.data.split('/');
+        if (parts.length === 3) {
+          const months = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+          setSelectedDate(`${parts[2]}-${months[parts[1]] || '01'}-${parts[0].padStart(2, '0')}`);
+          return;
+        }
       }
-    } catch (e) {
-      const today = new Date().toISOString().split('T')[0];
       setSelectedDate(today);
+    } catch (e) {
+      setSelectedDate(new Date().toISOString().split('T')[0]);
     }
   };
 
   const handleSearch = async () => {
     if (!selectedDate || !selectedGameId) {
-      showToast('Date aur Game dono select karo', 'error');
+      showToast('Select Date and Game first', 'error');
       return;
     }
 
     setLoading(true);
     setAbsentList([]);
-    setSelectedRowIndex(null);
 
     const apiDate = toApiDate(selectedDate);
     try {
-      const r = await API.get(`/api/home/absent-customers?date=${encodeURIComponent(apiDate)}&gameID=${selectedGameId}`);
+      const r = await API.get(`/sapi/home/absent-customers?date=${encodeURIComponent(apiDate)}&gameID=${selectedGameId}`);
       if (r && r.success) {
         setAbsentList(r.data || []);
       } else {
@@ -113,96 +109,75 @@ export default function AbsentCustomersPage() {
     }
   };
 
+  const columns = [
+    {
+      header: 'SRNo',
+      id: 'srno',
+      cell: ({ row }) => <span className="text-xs font-semibold">{row.index + 1}</span>,
+    },
+    {
+      header: 'Customer Name',
+      accessorKey: 'CustomerName',
+      cell: ({ row }) => (
+        <span className="font-bold text-xs capitalize text-slate-900 dark:text-white">
+          {row.original.CustomerName || '-'}
+        </span>
+      ),
+    },
+    {
+      header: 'Mobile Number',
+      accessorKey: 'Mobile',
+      cell: ({ row }) => <span className="text-xs font-mono text-slate-600 dark:text-slate-300">{row.original.Mobile || '-'}</span>,
+    },
+  ];
+
   return (
-    <div className="content">
-      <div className="card">
-        <div className="card-body" style={{ padding: '14px' }}>
-          
-          <div className="row" style={{ marginBottom: '14px' }}>
-            <div className="col-md-6" style={{ marginBottom: '10px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontWeight: 'bold' }}>Date</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="col-md-6" style={{ marginBottom: '10px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontWeight: 'bold' }}>Game</label>
-                <select 
-                  className="form-control"
-                  value={selectedGameId}
-                  onChange={(e) => setSelectedGameId(e.target.value)}
-                >
-                  <option value="">All Game</option>
-                  {games.map(g => (
-                    <option key={g.GID} value={g.GID}>{g.GameName}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Absent Customers Monitor"
+        description="Audit inactive customers who have not placed bets for a selected draw date."
+      />
+
+      <StatCard
+        title="Total Absent Customers"
+        value={absentList.length}
+        icon={UserX}
+        description="Inactive client count for draw"
+        className="max-w-xs"
+      />
+
+      <Card>
+        <CardContent className="p-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+            <Input label="Draw Date" type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+            <Select label="Game" value={selectedGameId} onChange={(e) => setSelectedGameId(e.target.value)}>
+              <option value="">All Games</option>
+              {games.map((g) => (
+                <option key={g.GID} value={g.GID}>
+                  {g.GameName}
+                </option>
+              ))}
+            </Select>
+            <Button onClick={handleSearch} isLoading={loading} leftIcon={<Search className="h-4 w-4" />}>
+              SEARCH ABSENT
+            </Button>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="row" style={{ marginBottom: '16px' }}>
-            <div className="col-md-12">
-              <button className="btn btn-success" onClick={handleSearch} disabled={loading}>
-                Search
-              </button>
-            </div>
-          </div>
-
-          {/* Grid display for Absent list */}
-          <div className="table-responsive" style={{ border: '1px solid #dee2e6', borderRadius: '4px' }}>
-            <table className="table-bordered-bd-primary table-hover" style={{ textTransform: 'capitalize', textAlign: 'center', width: '100%', fontSize: '0.86rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: 'LightGray' }}>
-                  <th style={{ padding: '8px', width: '80px' }}>SRNo</th>
-                  <th>Customer</th>
-                  <th>Mobile</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={3} style={{ padding: '24px' }}>
-                      <span className="spin"></span> Searching absent customers...
-                    </td>
-                  </tr>
-                ) : absentList.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} style={{ padding: '24px', color: 'var(--muted)' }}>
-                      No absent records found. Click search to run query.
-                    </td>
-                  </tr>
-                ) : (
-                  absentList.map((row, idx) => (
-                    <tr 
-                      key={idx}
-                      className={selectedRowIndex === idx ? 'table-active' : ''}
-                      onClick={() => setSelectedRowIndex(idx)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <td style={{ padding: '8px' }}>{idx + 1}</td>
-                      <td style={{ fontWeight: 'bold' }}>{row.CustomerName || ''}</td>
-                      <td>{row.Mobile || ''}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-      </div>
-
-      <style jsx>{`
-        .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
-        @keyframes spin { to { transform: rotate(360deg) } }
-      `}</style>
+      <Card>
+        <CardHeader>
+          <CardTitle>Absent Customers Directory ({absentList.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            columns={columns}
+            data={absentList}
+            isLoading={loading}
+            searchPlaceholder="Search customer or mobile..."
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

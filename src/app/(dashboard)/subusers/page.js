@@ -2,15 +2,22 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { Users, UserPlus, Edit2, Shield, Lock, Smartphone, CheckCircle2 } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Checkbox } from '../../../components/ui/checkbox';
+import { Button } from '../../../components/ui/button';
+import { DataTable } from '../../../components/tables/DataTable';
+import { StatusBadge } from '../../../components/ui/badge';
 
 export default function SubusersPage() {
   const router = useRouter();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Form states
   const [subID, setSubID] = useState('');
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
@@ -18,20 +25,16 @@ export default function SubusersPage() {
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form error triggers
   const [errName, setErrName] = useState(false);
   const [errMobile, setErrMobile] = useState(false);
   const [errPwd, setErrPwd] = useState(false);
 
   const nameInputRef = useRef(null);
-  const mobileInputRef = useRef(null);
-  const passwordInputRef = useRef(null);
 
-  // Load all sub users
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const r = await API.get('/api/admin/subusers');
+      const r = await API.get('/sapi/admin/subusers');
       if (r && r.success) {
         setUsers(r.data || []);
       }
@@ -47,22 +50,6 @@ export default function SubusersPage() {
     loadUsers();
   }, []);
 
-  // Enter key focus forwarding
-  const handleKeyDown = (e, index) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (index === 1 && mobileInputRef.current) {
-        mobileInputRef.current.focus();
-      } else if (index === 2 && passwordInputRef.current) {
-        passwordInputRef.current.focus();
-      } else if (index === 3) {
-        // Trigger Save
-        handleSaveSubUser();
-      }
-    }
-  };
-
-  // Submit Save or Update
   const handleSaveSubUser = async () => {
     setErrName(!name.trim());
     setErrMobile(!mobile.trim());
@@ -77,31 +64,23 @@ export default function SubusersPage() {
       name: name.trim(),
       mobile: mobile.trim(),
       password: password.trim(),
-      isActive
+      isActive,
     };
 
     try {
       let r;
       if (subID) {
-        r = await API.put(`/api/admin/subusers/${subID}`, body);
+        r = await API.put(`/sapi/admin/subusers/${subID}`, body);
       } else {
-        r = await API.post('/api/admin/subusers', body);
+        r = await API.post('/sapi/admin/subusers', body);
       }
 
       if (r && r.success) {
-        if (typeof window !== 'undefined' && window.swal) {
-          window.swal('Success!', subID ? 'Data Updated Successfully!' : 'Data Saved Successfully!', { icon: 'success', timer: 1200, buttons: false });
-        } else {
-          showToast(subID ? 'Data Updated Successfully!' : 'Data Saved Successfully!');
-        }
+        showToast(subID ? 'Sub User updated successfully!' : 'Sub User created successfully!');
         handleCancel();
         await loadUsers();
       } else {
-        if (typeof window !== 'undefined' && window.swal) {
-          window.swal('Wrong Inputs!', 'Something Went Wrong!', { icon: 'error', timer: 1200, buttons: false });
-        } else {
-          showToast('Something Went Wrong!', 'error');
-        }
+        showToast('Something Went Wrong!', 'error');
       }
     } catch (e) {
       showToast('Error connecting server', 'error');
@@ -116,18 +95,12 @@ export default function SubusersPage() {
     setMobile(u.Mobile || '');
     setPassword(u.Password || '');
     setIsActive(u.IsActive === 'True' || u.IsActive === true);
-    
+
     setErrName(false);
     setErrMobile(false);
     setErrPwd(false);
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => {
-      if (mobileInputRef.current) {
-        mobileInputRef.current.focus();
-        mobileInputRef.current.select();
-      }
-    }, 100);
   };
 
   const handleCancel = () => {
@@ -139,171 +112,129 @@ export default function SubusersPage() {
     setErrName(false);
     setErrMobile(false);
     setErrPwd(false);
-    if (nameInputRef.current) {
-      nameInputRef.current.focus();
-    }
   };
 
+  const columns = [
+    {
+      header: 'SubUser ID',
+      accessorKey: 'SubUserID',
+      cell: ({ row }) => <span className="font-bold text-xs font-mono">{row.original.SubUserID}</span>,
+    },
+    {
+      header: 'Name',
+      accessorKey: 'subusername',
+      cell: ({ row }) => (
+        <span className="font-bold text-xs capitalize text-slate-900 dark:text-white">
+          {row.original.subusername || '-'}
+        </span>
+      ),
+    },
+    {
+      header: 'Mobile',
+      accessorKey: 'Mobile',
+      cell: ({ row }) => <span className="text-xs text-slate-500 font-mono">{row.original.Mobile || '-'}</span>,
+    },
+    {
+      header: 'Password',
+      accessorKey: 'Password',
+      cell: ({ row }) => <span className="text-xs font-mono">{row.original.Password || '-'}</span>,
+    },
+    {
+      header: 'Status',
+      accessorKey: 'IsActive',
+      cell: ({ row }) => {
+        const active = row.original.IsActive === 'True' || row.original.IsActive === true;
+        return <StatusBadge status={active ? 'active' : 'inactive'} />;
+      },
+    },
+    {
+      header: 'Actions',
+      id: 'actions',
+      cell: ({ row }) => (
+        <Button size="icon-sm" variant="outline" onClick={() => handleEditUser(row.original)}>
+          <Edit2 className="h-3.5 w-3.5" />
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <div className="content">
-      <div className="row">
-        <div className="col-md-12">
-          {/* Form Card */}
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                <span>{subID ? 'Update Sub User' : 'Create Sub User'}</span>
-                <button 
-                  className="btn btn-success" 
-                  style={{ fontWeight: 900 }}
-                  onClick={() => router.push('/assign-clients')}
-                >
-                  Access Right <i className="fas fa-user-shield" style={{ marginLeft: '6px' }}></i>
-                </button>
-              </div>
-            </div>
-            
-            <div className="card-body">
-              <div className="row">
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label htmlFor="txtName">Name</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      id="txtName" 
-                      placeholder="Enter Name"
-                      style={{ textTransform: 'capitalize' }}
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, 1)}
-                      ref={nameInputRef}
-                      autoFocus
-                    />
-                    {errName && <span style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>* Name required</span>}
-                  </div>
-                </div>
-                
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label htmlFor="txtMobile">Mobile</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      id="txtMobile" 
-                      placeholder="Enter Mobile No"
-                      maxLength={10}
-                      value={mobile}
-                      onChange={(e) => setMobile(e.target.value.replace(/[^0-9]/g, ''))}
-                      onKeyDown={(e) => handleKeyDown(e, 2)}
-                      ref={mobileInputRef}
-                    />
-                    {errMobile && <span style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>* Mobile required</span>}
-                  </div>
-                </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Sub-Users & Staff Accounts"
+        description="Manage staff members, create login credentials, and configure access permissions."
+        actions={
+          <Button onClick={() => router.push('/assign-clients')} leftIcon={<Shield className="h-4 w-4" />}>
+            Assign Customer Access
+          </Button>
+        }
+      />
 
-                <div className="col-md-3">
-                  <div className="form-group">
-                    <label htmlFor="txtPassword">Password</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      id="txtPassword" 
-                      placeholder="Enter Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, 3)}
-                      ref={passwordInputRef}
-                    />
-                    {errPwd && <span style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>* Password required</span>}
-                  </div>
-                </div>
-
-                <div className="col-md-3">
-                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label htmlFor="isactive">Active</label>
-                    <div style={{ display: 'flex', alignItems: 'center', height: '40px' }}>
-                      <input 
-                        type="checkbox" 
-                        id="isactive" 
-                        checked={isActive}
-                        onChange={(e) => setIsActive(e.target.checked)}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+      <div className="grid grid-cols-1 gap-6">
+        {/* Form Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{subID ? 'Update Sub User' : 'Create New Sub User'}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Input
+                label="Full Name"
+                placeholder="Enter Staff Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                error={errName ? 'Name required' : undefined}
+                leftIcon={<Users className="h-4 w-4" />}
+                ref={nameInputRef}
+              />
+              <Input
+                label="Mobile Number"
+                placeholder="10 digit Mobile"
+                maxLength={10}
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value.replace(/[^0-9]/g, ''))}
+                error={errMobile ? 'Mobile required' : undefined}
+                leftIcon={<Smartphone className="h-4 w-4" />}
+              />
+              <Input
+                label="Password"
+                placeholder="Set Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={errPwd ? 'Password required' : undefined}
+                leftIcon={<Lock className="h-4 w-4" />}
+              />
             </div>
 
-            <div className="card-action">
-              <button 
-                className="btn btn-success" 
-                onClick={handleSaveSubUser}
-                disabled={submitting}
-              >
-                {submitting ? '...' : subID ? 'Update' : 'Save'}
-              </button>
-              <button className="btn btn-danger" onClick={handleCancel} style={{ marginLeft: '10px' }}>
+            <div className="pt-2">
+              <Checkbox label="Account Active" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+            </div>
+
+            <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <Button onClick={handleSaveSubUser} isLoading={submitting} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+                {subID ? 'UPDATE SUB USER' : 'SAVE SUB USER'}
+              </Button>
+              <Button variant="outline" onClick={handleCancel}>
                 Cancel
-              </button>
+              </Button>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* List Card */}
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title">All Sub Users</div>
-            </div>
-            <div className="table-responsive">
-              {loading ? (
-                <div style={{ padding: '20px', textAlign: 'center' }}>
-                  <span className="spinner" style={{ marginRight: '8px' }}></span>Loading...
-                </div>
-              ) : users.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)' }}>
-                  No Sub Users Found
-                </div>
-              ) : (
-                <table className="table-bordered-bd-primary table-hover" style={{ textTransform: 'capitalize', textAlign: 'center', width: '100%' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: 'LightGray' }}>
-                      <th style={{ width: '50px', padding: '10px' }}>Edit</th>
-                      <th style={{ width: '100px' }}>ID</th>
-                      <th style={{ width: '100px' }}>Password</th>
-                      <th style={{ width: '100px' }}>Name</th>
-                      <th style={{ width: '100px' }}>Mobile</th>
-                      <th style={{ width: '50px' }}>Active</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((u) => (
-                      <tr key={u.SubUserID}>
-                        <td style={{ padding: '8px' }}>
-                          <img 
-                            src="/vendor/images/edit-icon-orange-pencil-0.png" 
-                            width="30" 
-                            height="30" 
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => handleEditUser(u)}
-                            alt="Edit"
-                          />
-                        </td>
-                        <td style={{ fontWeight: 600 }}>{u.SubUserID}</td>
-                        <td>{u.Password || ''}</td>
-                        <td style={{ textTransform: 'capitalize' }}>{u.subusername || ''}</td>
-                        <td>{u.Mobile || ''}</td>
-                        <td style={{ fontWeight: 'bold', color: (u.IsActive === 'True' || u.IsActive === true) ? '#31ce36' : '#f25961' }}>
-                          {u.ActiveYesNo || ''}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Directory Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>All Configured Staff Accounts ({users.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              columns={columns}
+              data={users}
+              isLoading={loading}
+              searchPlaceholder="Search staff by name or mobile..."
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

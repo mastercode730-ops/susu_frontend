@@ -9,7 +9,7 @@ export const API = {
           ...options.headers
         }
       });
-      
+
       if (res.status === 401) {
         if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
           window.location.href = '/login';

@@ -1,10 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { Trophy, Calendar, Search, CheckCircle2, ArrowRight } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Select } from '../../../components/ui/select';
+import { Button } from '../../../components/ui/button';
+import { LoadingSpinner } from '../../../components/ui/spinner';
+import { EmptyState } from '../../../components/ui/empty-state';
 
-// Convert "2026-04-06" to "06/Apr/2026"
 function toApiDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
@@ -16,7 +23,6 @@ function toApiDate(dateStr) {
   return `${day}/${month}/${year}`;
 }
 
-// Convert "06/Apr/2026" to "2026-04-06"
 function toInputDate(apiDateStr) {
   if (!apiDateStr) return '';
   const parts = apiDateStr.split('/');
@@ -28,7 +34,6 @@ function toInputDate(apiDateStr) {
   return `${year}-${month}-${day}`;
 }
 
-// Format "06/04/2026" (dd/mm/yyyy) from database -> "06/Apr/2026"
 function formatGridDate(v) {
   if (!v) return '';
   const MNAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -50,20 +55,14 @@ export default function ResultsPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // Grid list data
   const [gridHeaders, setGridHeaders] = useState([]);
   const [gridRows, setGridRows] = useState([]);
   const [loadingGrid, setLoadingGrid] = useState(false);
   const [gridError, setGridError] = useState('');
 
-  const resultInputRef = useRef(null);
-  const submitButtonRef = useRef(null);
-  const searchButtonRef = useRef(null);
-
-  // Fetch games for dropdown
   const loadGames = async () => {
     try {
-      const r = await API.get('/api/game');
+      const r = await API.get('/sapi/game');
       if (r && r.success) {
         setGames(r.data || []);
       }
@@ -72,10 +71,9 @@ export default function ResultsPage() {
     }
   };
 
-  // Fetch latest date from database
   const loadLatestDate = async () => {
     try {
-      const r = await API.get('/api/hisab/latest-date');
+      const r = await API.get('/sapi/hisab/latest-date');
       if (r?.success && r.data) {
         const fmt = toInputDate(r.data);
         setDate(fmt);
@@ -86,7 +84,6 @@ export default function ResultsPage() {
     } catch (e) {
       console.error(e);
     }
-    // Fallback to IST
     const now = new Date(Date.now() + 5.5 * 3600000);
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -98,7 +95,6 @@ export default function ResultsPage() {
     return today;
   };
 
-  // Fetch result for selected game/date
   const getResult = async (gameId, dateVal) => {
     if (!gameId || !dateVal) {
       setResultInput('');
@@ -106,31 +102,22 @@ export default function ResultsPage() {
     }
     const apiDate = toApiDate(dateVal);
     try {
-      const r = await API.get(`/api/game/result?gid=${encodeURIComponent(gameId)}&date=${encodeURIComponent(apiDate)}`);
+      const r = await API.get(`/sapi/game/result?gid=${encodeURIComponent(gameId)}&date=${encodeURIComponent(apiDate)}`);
       setResultInput(r?.data?.Result || '');
     } catch (e) {
       setResultInput('');
     }
   };
 
-  // Bind Grid view
   const bindGrid = async (startVal, endVal) => {
     const s = startVal || startDate;
     const e = endVal || endDate;
     if (!s || !e) return;
 
-    // Date range monthly check
     const sp = s.split('-');
     const ep = e.split('-');
-    const month = parseInt(sp[1]);
-    const endMonth = parseInt(ep[1]);
-
-    if (month !== endMonth) {
-      if (typeof window !== 'undefined' && window.swal) {
-        window.swal('Select One Month!', 'Please Select one Month Result !', { icon: 'error', timer: 1500, buttons: false });
-      } else {
-        alert('Please select dates within the same month!');
-      }
+    if (parseInt(sp[1]) !== parseInt(ep[1])) {
+      showToast('Please select dates within the same month!', 'error');
       setGridHeaders([]);
       setGridRows([]);
       setGridError('Please select same month dates!');
@@ -143,7 +130,7 @@ export default function ResultsPage() {
     const apiEnd = toApiDate(e);
 
     try {
-      const r = await API.get(`/api/hisab/show-results?startDate=${encodeURIComponent(apiStart)}&endDate=${encodeURIComponent(apiEnd)}`);
+      const r = await API.get(`/sapi/hisab/show-results?startDate=${encodeURIComponent(apiStart)}&endDate=${encodeURIComponent(apiEnd)}`);
       const data = r?.data || [];
 
       if (!data.length) {
@@ -153,7 +140,6 @@ export default function ResultsPage() {
         return;
       }
 
-      // Sort dates
       data.sort((a, b) => {
         const pa = String(a.Date || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         const pb = String(b.Date || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
@@ -177,7 +163,6 @@ export default function ResultsPage() {
   const handleInitialize = async () => {
     await loadGames();
     const loadedDate = await loadLatestDate();
-    // Default fetch grid
     await bindGrid(loadedDate, loadedDate);
   };
 
@@ -185,19 +170,6 @@ export default function ResultsPage() {
     handleInitialize();
   }, []);
 
-  const handleDateChange = (e) => {
-    const val = e.target.value;
-    setDate(val);
-    getResult(selectedGame, val);
-  };
-
-  const handleGameChange = (e) => {
-    const val = e.target.value;
-    setSelectedGame(val);
-    getResult(val, date);
-  };
-
-  // Submit result
   const handleSubmitResult = async (e) => {
     e.preventDefault();
     if (!selectedGame) {
@@ -211,17 +183,13 @@ export default function ResultsPage() {
 
     const apiDate = toApiDate(date);
     try {
-      const r = await API.post('/api/game/save-result', { 
-        result: resultInput.trim(), 
-        gameID: selectedGame, 
-        date: apiDate 
+      const r = await API.post('/sapi/game/save-result', {
+        result: resultInput.trim(),
+        gameID: selectedGame,
+        date: apiDate,
       });
       if (r && r.success) {
-        if (typeof window !== 'undefined' && window.swal) {
-          window.swal('Success!', 'Data Saved Successfully!', { icon: 'success', timer: 1200, buttons: false });
-        } else {
-          showToast('Data Saved Successfully!');
-        }
+        showToast('Result saved successfully!');
         setResultInput('');
         setStartDate(date);
         setEndDate(date);
@@ -234,177 +202,153 @@ export default function ResultsPage() {
     }
   };
 
-  const handleSearchClick = async (e) => {
-    e.preventDefault();
-    await bindGrid();
-  };
-
   return (
-    <div className="content">
-      <div className="row">
-        <div className="col-md-12">
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title" style={{ fontWeight: 'bold' }}>Results</div>
-            </div>
-            
-            <div className="card-body">
-              {/* Form Input fields */}
-              <form onSubmit={handleSubmitResult}>
-                <div className="row">
-                  <div className="col-md-3">
-                    <div className="form-group">
-                      <label htmlFor="txtDate">Date</label>
-                      <input 
-                        type="date" 
-                        className="form-control" 
-                        id="txtDate"
-                        value={date}
-                        onChange={handleDateChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-3">
-                    <div className="form-group">
-                      <label htmlFor="gameSelection">Game</label>
-                      <select 
-                        className="form-control" 
-                        id="gameSelection"
-                        style={{ textTransform: 'capitalize' }}
-                        value={selectedGame}
-                        onChange={handleGameChange}
-                      >
-                        <option value="">Select Game</option>
-                        {games.map(g => (
-                          <option value={g.GID} key={g.GID}>{g.GameName}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="col-md-3">
-                    <div className="form-group">
-                      <label htmlFor="txtResult">Result</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        id="txtResult" 
-                        placeholder="Enter Result"
-                        maxLength={2}
-                        value={resultInput}
-                        onChange={(e) => setResultInput(e.target.value.replace(/[^0-9]/g, ''))}
-                        ref={resultInputRef}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-3" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <div className="form-group" style={{ width: '100%', marginBottom: '15px' }}>
-                      <button 
-                        type="submit" 
-                        className="btn btn-success btn-block"
-                        ref={submitButtonRef}
-                      >
-                        Submit
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </form>
+    <div className="space-y-6">
+      <PageHeader
+        title="Declare & Search Results"
+        description="Declare winning draw numbers for games and review historical result matrices."
+      />
 
-              {/* Grid Search Date Filters */}
-              <div className="row" style={{ borderTop: '1px solid #ced4da', paddingTop: '20px', marginTop: '10px' }}>
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label htmlFor="txtStartDate">Start Date</label>
-                    <input 
-                      type="date" 
-                      className="form-control" 
-                      id="txtStartDate"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="form-group">
-                    <label htmlFor="txtEndDate">End Date</label>
-                    <input 
-                      type="date" 
-                      className="form-control" 
-                      id="txtEndDate"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-4" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                  <div className="form-group" style={{ width: '100%', marginBottom: '15px' }}>
-                    <button 
-                      type="button" 
-                      className="btn btn-success btn-block"
-                      onClick={handleSearchClick}
-                      ref={searchButtonRef}
-                    >
-                      Search
-                    </button>
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 gap-6">
+        {/* Declare Result Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Declare Winning Result</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmitResult} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
+                <Input
+                  label="Draw Date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => {
+                    setDate(e.target.value);
+                    getResult(selectedGame, e.target.value);
+                  }}
+                />
+                <Select
+                  label="Game"
+                  value={selectedGame}
+                  onChange={(e) => {
+                    setSelectedGame(e.target.value);
+                    getResult(e.target.value, date);
+                  }}
+                >
+                  <option value="">Select Game</option>
+                  {games.map((g) => (
+                    <option value={g.GID} key={g.GID}>
+                      {g.GameName}
+                    </option>
+                  ))}
+                </Select>
+                <Input
+                  label="Result Number"
+                  placeholder="2 Digit Result (e.g. 84)"
+                  maxLength={2}
+                  value={resultInput}
+                  onChange={(e) => setResultInput(e.target.value.replace(/[^0-9]/g, ''))}
+                />
+                <Button type="submit" variant="primary" leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+                  SUBMIT RESULT
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Results Matrix Search & Display */}
+        <Card>
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <CardTitle>Historical Results Matrix</CardTitle>
+            <div className="flex items-center gap-3">
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-auto"
+              />
+              <span className="text-xs text-slate-400">to</span>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-auto"
+              />
+              <Button onClick={() => bindGrid()} leftIcon={<Search className="h-4 w-4" />}>
+                Search
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="overflow-x-auto">
+                <table className="w-full text-center text-sm">
+                  <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:bg-slate-800/40 dark:text-slate-400 dark:border-slate-800">
+                    {loadingGrid ? (
+                      <tr>
+                        <td colSpan={20} className="p-8">
+                          <LoadingSpinner text="Fetching results grid..." />
+                        </td>
+                      </tr>
+                    ) : gridError ? (
+                      <tr>
+                        <td colSpan={20} className="p-8 text-center text-xs font-semibold text-rose-500">
+                          {gridError}
+                        </td>
+                      </tr>
+                    ) : gridHeaders.length === 0 ? (
+                      <tr>
+                        <td colSpan={20} className="p-0">
+                          <EmptyState title="No results loaded" description="Select date range and click Search." />
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr>
+                        {gridHeaders.map((h, idx) => (
+                          <th key={idx} className="px-4 py-3.5 whitespace-nowrap border-r border-slate-200/60 dark:border-slate-800/60">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    )}
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {!loadingGrid &&
+                      !gridError &&
+                      gridRows.map((row, rIdx) => (
+                        <tr key={rIdx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50">
+                          {gridHeaders.map((col, cIdx) => {
+                            const cellVal = row[col];
+                            const displayVal = col === 'Date' ? formatGridDate(cellVal) : (cellVal ?? '');
+                            const isNumber = col !== 'Date' && cellVal !== undefined && cellVal !== '';
+
+                            return (
+                              <td
+                                key={cIdx}
+                                className={`px-4 py-3 border-r border-slate-100 dark:border-slate-800 ${
+                                  col === 'Date' ? 'font-bold text-slate-900 dark:text-white' : 'font-mono text-slate-700 dark:text-slate-300'
+                                }`}
+                              >
+                                {isNumber ? (
+                                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 font-bold text-blue-600 dark:bg-blue-950 dark:text-blue-300">
+                                    {displayVal}
+                                  </span>
+                                ) : (
+                                  displayVal
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-
-            {/* Grid ShowResult Table */}
-            <div className="table-responsive" style={{ padding: '0 15px 20px' }}>
-              <table className="table-bordered-bd-primary table-hover" style={{ textAlign: 'center', width: '100%' }}>
-                <thead>
-                  {loadingGrid ? (
-                    <tr>
-                      <td colSpan={20} className="emsg">
-                        <span className="spin"></span> Loading...
-                      </td>
-                    </tr>
-                  ) : gridError ? (
-                    <tr>
-                      <td colSpan={20} className="emsg" style={{ color: 'var(--error)' }}>
-                        {gridError}
-                      </td>
-                    </tr>
-                  ) : gridHeaders.length === 0 ? (
-                    <tr>
-                      <td colSpan={20} className="emsg">
-                        No results loaded. Click Search.
-                      </td>
-                    </tr>
-                  ) : (
-                    <tr style={{ backgroundColor: 'LightGray' }}>
-                      {gridHeaders.map((h, idx) => <th style={{ padding: '10px' }} key={idx}>{h}</th>)}
-                    </tr>
-                  )}
-                </thead>
-                <tbody>
-                  {!loadingGrid && !gridError && gridRows.map((row, rIdx) => (
-                    <tr key={rIdx}>
-                      {gridHeaders.map((col, cIdx) => {
-                        const cellVal = row[col];
-                        const displayVal = col === 'Date' ? formatGridDate(cellVal) : (cellVal ?? '');
-                        return (
-                          <td key={cIdx} style={{ padding: '8px', fontWeight: col === 'Date' ? 600 : 400 }}>
-                            {displayVal}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
-      
-      <style jsx>{`
-        .emsg { color: var(--muted); text-align: center; padding: 20px; font-size: .84rem; }
-        .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
-        @keyframes spin { to { transform: rotate(360deg) } }
-      `}</style>
     </div>
   );
 }

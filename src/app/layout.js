@@ -1,38 +1,26 @@
 import { AuthProvider } from '../context/AuthContext';
-import Script from 'next/script';
+import '../styles/globals.css';
 
 export const metadata = {
-  title: "Susu9 - Game Management Platform",
-  description: "Susu9 backend client converted to Next.js",
+  title: "Susu9 — Game Management Platform",
+  description: "Next.js Susu9 Game & Contact Management Dashboard",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600&display=swap" />
-        <link rel="stylesheet" href="/css/main.css" />
-        <link rel="stylesheet" href="/vendor/assets/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/vendor/assets/css/fonts.min.css" />
-        <link rel="stylesheet" href="/vendor/assets/css/atlantis.min.css" />
-        <link rel="stylesheet" href="/vendor/fonts/font-awesome-4.7.0/css/font-awesome.min.css" />
-        <link rel="stylesheet" href="/vendor/Select/select2.css" />
-        <link rel="stylesheet" href="/css/polish.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body>
+      <body className="h-full bg-slate-50 font-sans antialiased text-slate-900 dark:bg-slate-950 dark:text-slate-100">
         <AuthProvider>
           {children}
         </AuthProvider>
-
-        {/* Load theme vendor scripts */}
-        <Script src="/vendor/assets/js/core/jquery.3.2.1.min.js" strategy="beforeInteractive" />
-        <Script src="/vendor/assets/js/core/popper.min.js" strategy="beforeInteractive" />
-        <Script src="/vendor/assets/js/core/bootstrap.min.js" strategy="beforeInteractive" />
-        <Script src="/vendor/assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js" strategy="beforeInteractive" />
-        <Script src="/vendor/assets/js/plugin/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js" strategy="beforeInteractive" />
-        <Script src="/vendor/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js" strategy="beforeInteractive" />
-        <Script src="/vendor/assets/js/plugin/sweetalert/sweetalert.min.js" strategy="beforeInteractive" />
-        <Script src="/vendor/assets/js/atlantis.min.js" strategy="lazyOnload" />
       </body>
     </html>
   );

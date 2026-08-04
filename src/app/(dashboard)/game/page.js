@@ -1,8 +1,16 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { Gamepad2, Plus, Edit2, Trash2, Clock, Check, X, ShieldAlert } from 'lucide-react';
 import { API } from '../../../utils/api';
 import { showToast } from '../../../utils/toast';
+import { PageHeader } from '../../../components/layout/PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Checkbox } from '../../../components/ui/checkbox';
+import { Button } from '../../../components/ui/button';
+import { DataTable } from '../../../components/tables/DataTable';
+import { StatusBadge } from '../../../components/ui/badge';
 
 export default function GamesPage() {
   const [games, setGames] = useState([]);
@@ -19,13 +27,11 @@ export default function GamesPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const nameInputRef = useRef(null);
-  const drawTimeInputRef = useRef(null);
 
-  // Fetch all games
   const loadGames = async () => {
     setLoading(true);
     try {
-      const res = await API.get('/api/game');
+      const res = await API.get('/sapi/game');
       if (res && res.success) {
         setGames(res.data || []);
       }
@@ -41,7 +47,6 @@ export default function GamesPage() {
     loadGames();
   }, []);
 
-  // Submit create or update
   const handleSubmitGame = async (e) => {
     e.preventDefault();
     if (!gameName.trim() || !drawTime.trim()) {
@@ -56,19 +61,19 @@ export default function GamesPage() {
       isNextDay,
       isActive,
       isAcceptedStatus,
-      isRejectedMsg
+      isRejectedMsg,
     };
 
     try {
       let res;
       if (gameID) {
-        res = await API.put(`/api/game/${gameID}`, body);
+        res = await API.put(`/sapi/game/${gameID}`, body);
       } else {
-        res = await API.post('/api/game', body);
+        res = await API.post('/sapi/game', body);
       }
 
       if (res && res.success) {
-        showToast(gameID ? 'Data Updated Successfully!' : 'Data Saved Successfully!');
+        showToast(gameID ? 'Game updated successfully!' : 'Game created successfully!');
         resetForm();
         await loadGames();
       } else {
@@ -81,9 +86,7 @@ export default function GamesPage() {
     }
   };
 
-  // Click edit button
   const handleEditGame = (g) => {
-    // Note database fields match exact JSON properties
     const nextDay = g.IsNextDayResult === true || g.IsNextDayResult === 'True';
     const active = g.IsActive === true || g.IsActive === 'True';
     const accepted = g.IsAcceptedStatus === true || g.IsAcceptedStatus === 'True';
@@ -98,49 +101,42 @@ export default function GamesPage() {
     setIsRejectedMsg(rejected);
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => {
-      if (nameInputRef.current) {
-        nameInputRef.current.focus();
-        nameInputRef.current.select();
-      }
-    }, 100);
   };
 
-  // Toggle quick Yes/No buttons
   const handleToggle = async (gid, field, currentValue) => {
     const value = !currentValue;
     try {
-      const r = await API.post('/api/game/toggle', { gid, field, value });
+      const r = await API.post('/sapi/game/toggle', { gid, field, value });
       if (r && r.success) {
-        // Quick update in local state without reloading everything
-        setGames(prev => prev.map(g => {
-          if (g.GID === gid) {
-            return { ...g, [field]: value ? 'True' : 'False' };
-          }
-          return g;
-        }));
-        showToast('Updated successfully!');
+        setGames((prev) =>
+          prev.map((g) => {
+            if (g.GID === gid) {
+              return { ...g, [field]: value ? 'True' : 'False' };
+            }
+            return g;
+          })
+        );
+        showToast('Game updated!');
       } else {
         showToast('Update failed', 'error');
       }
     } catch (e) {
-      showToast('Error toggle action', 'error');
+      showToast('Error toggling game property', 'error');
     }
   };
 
-  // Delete game
   const handleDeleteGame = async (gid, name) => {
     if (!window.confirm(`Delete game "${name}"?`)) return;
     try {
-      const res = await API.delete(`/api/game/${gid}`);
+      const res = await API.delete(`/sapi/game/${gid}`);
       if (res && res.success) {
-        showToast('Data Deleted Successfully!');
+        showToast('Game deleted successfully!');
         await loadGames();
       } else {
         showToast(res?.message || 'Error deleting game', 'error');
       }
     } catch (e) {
-      showToast('Error connection delete', 'error');
+      showToast('Error deleting game', 'error');
     }
   };
 
@@ -152,224 +148,160 @@ export default function GamesPage() {
     setIsActive(true);
     setIsAcceptedStatus(false);
     setIsRejectedMsg(false);
-    if (nameInputRef.current) nameInputRef.current.focus();
   };
 
-  // Enter key press forwarding
-  const handleNameKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (drawTimeInputRef.current) drawTimeInputRef.current.focus();
-    }
-  };
+  const columns = [
+    {
+      header: 'Game Name',
+      accessorKey: 'GameName',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Gamepad2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <span className="font-bold text-slate-900 dark:text-white capitalize">{row.original.GameName}</span>
+        </div>
+      ),
+    },
+    {
+      header: 'Draw Time',
+      accessorKey: 'DrawTime',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold dark:text-slate-300">
+          <Clock className="h-3.5 w-3.5 text-slate-400" />
+          <span>{row.original.DrawTime || '-'}</span>
+        </div>
+      ),
+    },
+    {
+      header: 'Next Day',
+      accessorKey: 'IsNextDayResult',
+      cell: ({ row }) => {
+        const val = row.original.IsNextDayResult === true || row.original.IsNextDayResult === 'True';
+        return (
+          <Button size="sm" variant={val ? 'success' : 'outline'} onClick={() => handleToggle(row.original.GID, 'IsNextDayResult', val)}>
+            {val ? 'Yes' : 'No'}
+          </Button>
+        );
+      },
+    },
+    {
+      header: 'Auto Accept',
+      accessorKey: 'IsAcceptedStatus',
+      cell: ({ row }) => {
+        const val = row.original.IsAcceptedStatus === true || row.original.IsAcceptedStatus === 'True';
+        return (
+          <Button size="sm" variant={val ? 'success' : 'outline'} onClick={() => handleToggle(row.original.GID, 'IsAcceptedStatus', val)}>
+            {val ? 'Yes' : 'No'}
+          </Button>
+        );
+      },
+    },
+    {
+      header: 'Over Time Reject',
+      accessorKey: 'IsRejectedMsg',
+      cell: ({ row }) => {
+        const val = row.original.IsRejectedMsg === true || row.original.IsRejectedMsg === 'True';
+        return (
+          <Button size="sm" variant={val ? 'danger' : 'outline'} onClick={() => handleToggle(row.original.GID, 'IsRejectedMsg', val)}>
+            {val ? 'Yes' : 'No'}
+          </Button>
+        );
+      },
+    },
+    {
+      header: 'Active',
+      accessorKey: 'IsActive',
+      cell: ({ row }) => {
+        const val = row.original.IsActive === true || row.original.IsActive === 'True';
+        return (
+          <Button size="sm" variant={val ? 'success' : 'danger'} onClick={() => handleToggle(row.original.GID, 'IsActive', val)}>
+            {val ? 'Active' : 'Disabled'}
+          </Button>
+        );
+      },
+    },
+    {
+      header: 'Actions',
+      id: 'actions',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Button size="icon-sm" variant="outline" onClick={() => handleEditGame(row.original)}>
+            <Edit2 className="h-3.5 w-3.5" />
+          </Button>
+          <Button size="icon-sm" variant="danger" onClick={() => handleDeleteGame(row.original.GID, row.original.GameName)}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="content">
-      <div className="row">
-        <div className="col-md-12">
-          {/* Game Creator Form Card */}
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title">{gameID ? 'Edit Game' : 'Create Games'}</div>
-            </div>
-            <form onSubmit={handleSubmitGame}>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-md-3">
-                    <div className="form-group">
-                      <label htmlFor="txtGameName">Game Name</label>
-                      <input 
-                        type="text" 
-                        id="txtGameName" 
-                        className="form-control" 
-                        placeholder="Enter Game Name"
-                        value={gameName}
-                        onChange={(e) => setGameName(e.target.value)}
-                        onKeyDown={handleNameKeyDown}
-                        ref={nameInputRef}
-                        autoComplete="off"
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-3">
-                    <div className="form-group">
-                      <label htmlFor="txtDrawTime">Draw Time</label>
-                      <input 
-                        type="text" 
-                        id="txtDrawTime" 
-                        className="form-control" 
-                        placeholder="e.g. 06:00 PM"
-                        value={drawTime}
-                        onChange={(e) => setDrawTime(e.target.value)}
-                        ref={drawTimeInputRef}
-                        autoComplete="off"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-1">
-                    <div className="form-group">
-                      <label>Next Day</label><br />
-                      <input 
-                        type="checkbox" 
-                        id="chkNextDay"
-                        checked={isNextDay}
-                        onChange={(e) => setIsNextDay(e.target.checked)}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-1">
-                    <div className="form-group">
-                      <label>Active</label><br />
-                      <input 
-                        type="checkbox" 
-                        id="chkIsActive"
-                        checked={isActive}
-                        onChange={(e) => setIsActive(e.target.checked)}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-2">
-                    <div className="form-group">
-                      <label>Auto Accept</label><br />
-                      <input 
-                        type="checkbox" 
-                        id="chkAcceptedStatus"
-                        checked={isAcceptedStatus}
-                        onChange={(e) => setIsAcceptedStatus(e.target.checked)}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-2">
-                    <div className="form-group">
-                      <label>Over Time Reject</label><br />
-                      <input 
-                        type="checkbox" 
-                        id="chkRejectedMsg"
-                        checked={isRejectedMsg}
-                        onChange={(e) => setIsRejectedMsg(e.target.checked)}
-                      />
-                    </div>
-                  </div>
-                </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Game Creation & Management"
+        description="Add new drawing games, set draw schedules, auto-accept status, and manage active games."
+      />
+
+      <div className="grid grid-cols-1 gap-6">
+        {/* Game Creator Form Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{gameID ? 'Edit Game Settings' : 'Create New Game'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmitGame} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Input
+                  label="Game Name"
+                  placeholder="e.g. Gali, Disawar"
+                  value={gameName}
+                  onChange={(e) => setGameName(e.target.value)}
+                  ref={nameInputRef}
+                />
+                <Input
+                  label="Draw Time"
+                  placeholder="e.g. 06:00 PM"
+                  value={drawTime}
+                  onChange={(e) => setDrawTime(e.target.value)}
+                />
               </div>
-              <div className="card-action">
-                <button type="submit" className="btn btn-success" disabled={submitting}>
-                  {submitting ? 'Submitting...' : gameID ? 'Update' : 'Submit'}
-                </button>
-                <button type="button" className="btn btn-danger" onClick={resetForm} style={{ marginLeft: '10px' }}>Cancel</button>
+
+              <div className="flex flex-wrap items-center gap-6 pt-2">
+                <Checkbox label="Next Day Result" checked={isNextDay} onChange={(e) => setIsNextDay(e.target.checked)} />
+                <Checkbox label="Active Game" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+                <Checkbox label="Auto Accept Bets" checked={isAcceptedStatus} onChange={(e) => setIsAcceptedStatus(e.target.checked)} />
+                <Checkbox label="Over Time Reject" checked={isRejectedMsg} onChange={(e) => setIsRejectedMsg(e.target.checked)} />
+              </div>
+
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <Button type="submit" isLoading={submitting} leftIcon={<Plus className="h-4 w-4" />}>
+                  {gameID ? 'UPDATE GAME' : 'SAVE GAME'}
+                </Button>
+                {gameID && (
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                )}
               </div>
             </form>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* All Games List Card */}
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title">All Games</div>
-            </div>
-            <div className="table-responsive">
-              {loading ? (
-                <div className="loading" style={{ padding: '20px', textAlign: 'center' }}>
-                  <span className="spinner" style={{ marginRight: '8px' }}></span>Loading...
-                </div>
-              ) : games.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)' }}>
-                  No games found. Add your first game!
-                </div>
-              ) : (
-                <table className="table-bordered-bd-primary table-hover" style={{ textTransform: 'capitalize', textAlign: 'center', width: '100%' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: 'LightGray' }}>
-                      <th style={{ width: '50px', padding: '10px' }}>Edit</th>
-                      <th style={{ width: '100px' }}>Game</th>
-                      <th style={{ width: '50px' }}>Draw</th>
-                      <th style={{ width: '50px' }}>Next Day</th>
-                      <th style={{ width: '50px' }}>Auto Accept</th>
-                      <th style={{ width: '50px' }}>Over Time Reject</th>
-                      <th style={{ width: '50px' }}>Active</th>
-                      <th style={{ width: '50px' }}>Delete</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {games.map((g) => {
-                      const nextDay = g.IsNextDayResult === true || g.IsNextDayResult === 'True';
-                      const active = g.IsActive === true || g.IsActive === 'True';
-                      const accepted = g.IsAcceptedStatus === true || g.IsAcceptedStatus === 'True';
-                      const rejected = g.IsRejectedMsg === true || g.IsRejectedMsg === 'True';
-                      
-                      return (
-                        <tr key={g.GID}>
-                          <td style={{ padding: '8px' }}>
-                            <img 
-                              src="/vendor/images/edit-icon-orange-pencil-0.png" 
-                              width="20" 
-                              height="20" 
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => handleEditGame(g)}
-                              alt="Edit"
-                            />
-                          </td>
-                          <td style={{ fontWeight: 600 }}>{g.GameName}</td>
-                          <td>{g.DrawTime || '-'}</td>
-                          <td>
-                            <button 
-                              className={nextDay ? 'tog-yes' : 'tog-no'} 
-                              onClick={() => handleToggle(g.GID, 'IsNextDayResult', nextDay)}
-                            >
-                              {nextDay ? 'Yes' : 'No'}
-                            </button>
-                          </td>
-                          <td>
-                            <button 
-                              className={accepted ? 'tog-yes' : 'tog-no'} 
-                              onClick={() => handleToggle(g.GID, 'IsAcceptedStatus', accepted)}
-                            >
-                              {accepted ? 'Yes' : 'No'}
-                            </button>
-                          </td>
-                          <td>
-                            <button 
-                              className={rejected ? 'tog-yes' : 'tog-no'} 
-                              onClick={() => handleToggle(g.GID, 'IsRejectedMsg', rejected)}
-                            >
-                              {rejected ? 'Yes' : 'No'}
-                            </button>
-                          </td>
-                          <td>
-                            <button 
-                              className={active ? 'tog-yes' : 'tog-no'} 
-                              onClick={() => handleToggle(g.GID, 'IsActive', active)}
-                            >
-                              {active ? 'Yes' : 'No'}
-                            </button>
-                          </td>
-                          <td>
-                            <img 
-                              src="/vendor/images/delete.png" 
-                              width="25" 
-                              height="25" 
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => handleDeleteGame(g.GID, g.GameName)}
-                              alt="Delete"
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* All Games List Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>All Active & Configured Games ({games.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              columns={columns}
+              data={games}
+              isLoading={loading}
+              searchPlaceholder="Search games by name..."
+            />
+          </CardContent>
+        </Card>
       </div>
-
-      <style jsx>{`
-        .tog-yes { background: #31ce36; color: #fff; border: none; border-radius: 2px; font-size: .8rem; height: 30px; min-width: 35px; cursor: pointer; font-weight: 700; padding: 0 8px; }
-        .tog-no { background: #f25961; color: #fff; border: none; border-radius: 2px; font-size: .8rem; height: 30px; min-width: 35px; cursor: pointer; font-weight: 700; padding: 0 8px; }
-        .tog-yes:hover { background: #28b52e; }
-        .tog-no:hover { background: #d9444e; }
-      `}</style>
     </div>
   );
 }
