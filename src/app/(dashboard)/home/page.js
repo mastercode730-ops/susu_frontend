@@ -58,28 +58,51 @@ export default function HomePage() {
     }
   };
 
-  // Search full receiver database
+  // Search full receiver database & local contacts
   const doSearch = async (query) => {
     if (!query) {
       setIsSearching(false);
-      loadContacts("");
+      setSearchResults([]);
       return;
     }
     setIsSearching(true);
-    setLoadingContacts(true);
+    
+    const q = query.toLowerCase().trim();
+    // Instant client-side filter on loaded contacts by Name or Mobile
+    const localMatches = contacts.filter((c) => {
+      const name = (c.CustomerName || "").toLowerCase();
+      const mob = (c.Mobile || c.MobileNo || "").toLowerCase();
+      return name.includes(q) || mob.includes(q);
+    });
+    setSearchResults(localMatches);
+
     try {
-      const r = await API.get(
-        `/api/home/receivers?filter=${encodeURIComponent(query)}`,
-      );
-      if (r && r.success) {
-        setSearchResults(r.data || []);
-      } else {
-        setSearchResults([]);
-      }
+      // Query server for any additional receivers/messages
+      const [r1, r2] = await Promise.all([
+        API.get(`/api/home/receivers?filter=${encodeURIComponent(query)}`),
+        API.get(`/api/home/messages?filter=${encodeURIComponent(query)}`)
+      ]);
+
+      const serverItems = [
+        ...(r1 && r1.success && Array.isArray(r1.data) ? r1.data : []),
+        ...(r2 && r2.success && Array.isArray(r2.data) ? r2.data : [])
+      ];
+
+      // Combine local matches + server items and deduplicate by Mobile
+      const combined = [...localMatches];
+      const seenMobiles = new Set(localMatches.map(c => String(c.Mobile || c.MobileNo || '').trim()));
+
+      serverItems.forEach(item => {
+        const mob = String(item.Mobile || item.MobileNo || '').trim();
+        if (mob && !seenMobiles.has(mob)) {
+          seenMobiles.add(mob);
+          combined.push(item);
+        }
+      });
+
+      setSearchResults(combined);
     } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingContacts(false);
+      console.error('Search error:', e);
     }
   };
 
