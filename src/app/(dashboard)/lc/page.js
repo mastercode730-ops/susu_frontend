@@ -239,7 +239,7 @@ export default function LCPage() {
             <Input label="From Date" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
             <Input label="To Date" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
             <div className="flex items-center gap-2">
-              <Button onClick={handleSearch} isLoading={loading} leftIcon={<Search className="h-4 w-4" />}>
+              <Button variant="primary" className="font-bold uppercase tracking-wider" onClick={handleSearch} isLoading={loading} leftIcon={<Search className="h-4 w-4" />}>
                 SEARCH
               </Button>
               <Button variant="success" onClick={handlePostLC} isLoading={submittingPost} leftIcon={<Send className="h-4 w-4" />}>
@@ -267,7 +267,7 @@ export default function LCPage() {
         </CardHeader>
         <CardContent className="p-4 flex items-center gap-4">
           <Input type="date" value={deleteDate} onChange={(e) => setDeleteDate(e.target.value)} className="w-auto" />
-          <Button variant="danger" onClick={handleDeleteLC} isLoading={submittingDelete} leftIcon={<Trash2 className="h-4 w-4" />}>
+          <Button variant="danger" className="font-bold uppercase tracking-wider" onClick={handleDeleteLC} isLoading={submittingDelete} leftIcon={<Trash2 className="h-4 w-4" />}>
             DELETE LC
           </Button>
         </CardContent>

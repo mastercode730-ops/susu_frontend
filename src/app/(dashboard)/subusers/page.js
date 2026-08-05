@@ -164,7 +164,7 @@ export default function SubusersPage() {
         title="Sub-Users & Staff Accounts"
         description="Manage staff members, create login credentials, and configure access permissions."
         actions={
-          <Button onClick={() => router.push('/assign-clients')} leftIcon={<Shield className="h-4 w-4" />}>
+          <Button variant="primary" className="font-semibold" onClick={() => router.push('/assign-clients')} leftIcon={<Shield className="h-4 w-4" />}>
             Assign Customer Access
           </Button>
         }
@@ -211,7 +211,7 @@ export default function SubusersPage() {
             </div>
 
             <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <Button onClick={handleSaveSubUser} isLoading={submitting} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+              <Button variant="primary" className="font-bold uppercase tracking-wider" onClick={handleSaveSubUser} isLoading={submitting} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
                 {subID ? 'UPDATE SUB USER' : 'SAVE SUB USER'}
               </Button>
               <Button variant="outline" onClick={handleCancel}>

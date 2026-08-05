@@ -2,10 +2,11 @@ import * as React from 'react';
 import { cn } from '../../lib/utils';
 import { ChevronDown } from 'lucide-react';
 
-const Select = React.forwardRef(({ className, children, label, id, error, helperText, ...props }, ref) => {
-  const selectId = id || React.useId();
+const Select = React.forwardRef(({ className, wrapperClassName, children, label, id, error, helperText, ...props }, ref) => {
+  const generatedId = React.useId();
+  const selectId = id || generatedId;
   return (
-    <div className="w-full space-y-1.5">
+    <div className={cn("w-full space-y-1.5", wrapperClassName)}>
       {label && (
         <label
           htmlFor={selectId}

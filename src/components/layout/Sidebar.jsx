@@ -70,16 +70,16 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
   const visibleNav = navItems.filter((i) => i.visible);
 
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between bg-slate-900 text-slate-100 dark:bg-slate-950 dark:border-r dark:border-slate-800">
+    <div className="flex h-full flex-col justify-between bg-white text-slate-900 border-r border-slate-200/80 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-800">
       {/* Brand header */}
       <div>
-        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800/80">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-100 dark:border-slate-800/80">
           <Link href="/home" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 font-black text-white shadow-md">
               S9
             </div>
             {(!collapsed || mobileOpen) && (
-              <span className="text-lg font-bold tracking-wider text-white">
+              <span className="text-lg font-bold tracking-wider text-slate-900 dark:text-white">
                 SUSU9
               </span>
             )}
@@ -87,7 +87,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
           {!mobileOpen && (
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </button>
@@ -95,16 +95,16 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
         </div>
 
         {/* User Card */}
-        <div className="p-3 border-b border-slate-800/80">
-          <div className="flex items-center gap-3 rounded-xl bg-slate-800/60 p-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 font-semibold text-blue-400 text-xs uppercase">
+        <div className="p-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5 border border-slate-100 dark:border-transparent">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-500/20 font-semibold text-blue-600 dark:text-blue-400 text-xs uppercase">
               {user.UID?.charAt(0) || 'U'}
             </div>
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0 flex-1">
-                <div className="truncate text-xs font-bold text-white">{user.UID}</div>
+                <div className="truncate text-xs font-bold text-slate-900 dark:text-white">{user.UID}</div>
                 {isStaff && (
-                  <div className="truncate text-[10px] text-slate-400 font-medium">
+                  <div className="truncate text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                     Staff: {user.SubUID}
                   </div>
                 )}
@@ -127,11 +127,11 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-150 group",
                   isActive
                     ? "bg-blue-600 text-white shadow-sm"
-                    : "text-slate-400 hover:bg-slate-800/80 hover:text-slate-100"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100"
                 )}
                 title={collapsed ? item.label : undefined}
               >
-                <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-slate-400")} />
+                <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-slate-500 dark:text-slate-400")} />
                 {(!collapsed || mobileOpen) && (
                   <span className="truncate">{item.label}</span>
                 )}
@@ -144,8 +144,8 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
               href="/admin/dashboard"
               onClick={() => setMobileOpen(false)}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-amber-400 hover:bg-slate-800/80 transition-all",
-                pathname?.startsWith('/admin') && "bg-amber-500/20"
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-slate-800/80 transition-all",
+                pathname?.startsWith('/admin') && "bg-amber-100 dark:bg-amber-500/20"
               )}
             >
               <ShieldAlert className="h-4 w-4 shrink-0" />
@@ -156,19 +156,19 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
       </div>
 
       {/* Footer Support & Logout */}
-      <div className="p-3 border-t border-slate-800/80 space-y-1">
+      <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 space-y-1">
         <a
           href="https://wa.me/+17073166800"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-emerald-400 hover:bg-slate-800/80 transition-colors"
+          className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800/80 transition-colors"
         >
           <Headphones className="h-4 w-4 shrink-0" />
           {(!collapsed || mobileOpen) && <span>WhatsApp Support</span>}
         </a>
         <button
           onClick={() => logout()}
-          className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-colors"
+          className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           {(!collapsed || mobileOpen) && <span>Logout</span>}

@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
 @layer base {
   :root {
     --background: 210 40% 98%;
@@ -74,6 +96,44 @@
     --input: 215 27.9% 16.9%;
     --ring: 216 12.2% 83.9%;
   }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 224 71.4% 4.1%;
+      --foreground: 210 20% 98%;
+
+      --card: 224 71.4% 6.5%;
+      --card-foreground: 210 20% 98%;
+
+      --popover: 224 71.4% 6.5%;
+      --popover-foreground: 210 20% 98%;
+
+      --primary: 217.2 91.2% 59.8%;
+      --primary-foreground: 222.2 47.4% 11.2%;
+
+      --secondary: 215 27.9% 16.9%;
+      --secondary-foreground: 210 20% 98%;
+
+      --muted: 215 27.9% 16.9%;
+      --muted-foreground: 217.9 10.6% 64.9%;
+
+      --accent: 215 27.9% 16.9%;
+      --accent-foreground: 210 20% 98%;
+
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 210 20% 98%;
+
+      --success: 142.1 70.6% 45.3%;
+      --success-foreground: 144.9 80.4% 10%;
+
+      --warning: 48 96% 89%;
+      --warning-foreground: 38 92% 50%;
+
+      --border: 215 27.9% 16.9%;
+      --input: 215 27.9% 16.9%;
+      --ring: 216 12.2% 83.9%;
+    }
+  }
 }
 
 @layer base {
@@ -117,3 +177,28 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(51, 65, 85, 0.8);
 }
+
+/* Date and time picker indicator icons styling */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.15s ease-in-out;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Ensure all buttons have cursor: pointer by default */
+button,
+[type='button'],
+[type='reset'],
+[type='submit'] {
+  cursor: pointer;
+}
+
+

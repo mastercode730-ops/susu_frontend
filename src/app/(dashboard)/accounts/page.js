@@ -484,7 +484,7 @@ export default function AccountsPage() {
               </div>
 
               <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <Button className="flex-1" onClick={handleSaveTransaction} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+                <Button variant="primary" className="flex-1 font-bold uppercase tracking-wider" onClick={handleSaveTransaction} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
                   SUBMIT ENTRY
                 </Button>
                 <Button variant="outline" onClick={handleResetForm}>
@@ -499,9 +499,9 @@ export default function AccountsPage() {
         <div className="lg:col-span-7">
           <Card>
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <CardTitle>Accounts Ledger Audit</CardTitle>
-              <div className="flex flex-wrap items-center gap-2">
-                <Select value={histParty} onChange={(e) => setHistParty(e.target.value)} className="w-auto">
+              <CardTitle className="whitespace-nowrap">Accounts Ledger Audit</CardTitle>
+              <div className="flex flex-row flex-wrap items-center gap-2">
+                <Select value={histParty} onChange={(e) => setHistParty(e.target.value)} wrapperClassName="w-44" className="w-full">
                   <option value="">All Customers</option>
                   {customers.filter((c) => c.UID !== 'Self').map((c) => (
                     <option key={c.UID} value={c.UID}>
@@ -509,7 +509,7 @@ export default function AccountsPage() {
                     </option>
                   ))}
                 </Select>
-                <Select value={histType} onChange={(e) => setHistType(e.target.value)} className="w-auto">
+                <Select value={histType} onChange={(e) => setHistType(e.target.value)} wrapperClassName="w-40" className="w-full">
                   <option value="">All Types</option>
                   <option value="Paid">Paid</option>
                   <option value="Received">Received</option>
@@ -517,7 +517,7 @@ export default function AccountsPage() {
                   <option value="Receive Adjustment">Receive Adjustment</option>
                   <option value="Commission">Commission</option>
                 </Select>
-                <Button onClick={() => loadLedgerHistory(histFrom, histTo, histParty, histType)}>
+                <Button variant="primary" className="font-semibold" onClick={() => loadLedgerHistory(histFrom, histTo, histParty, histType)}>
                   Filter
                 </Button>
               </div>

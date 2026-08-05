@@ -90,7 +90,7 @@ export default function ChangePasswordPage() {
             />
 
             <div className="pt-2">
-              <Button type="submit" isLoading={loading} className="w-full" leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+              <Button type="submit" variant="primary" isLoading={loading} className="w-full font-bold uppercase tracking-wider" leftIcon={<CheckCircle2 className="h-4 w-4" />}>
                 UPDATE PASSWORD
               </Button>
             </div>

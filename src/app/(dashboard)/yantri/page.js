@@ -179,26 +179,37 @@ function YantriWorkspace() {
   return (
     <div className="space-y-4">
       {/* Workspace Bar */}
-      <Card className="p-4 bg-slate-900 text-white dark:bg-slate-950">
+      <Card className="p-4 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white border border-slate-200/60 dark:border-slate-800 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => router.back()} leftIcon={<ArrowLeft className="h-4 w-4" />} className="text-white hover:bg-slate-800">
+            <Button variant="ghost" size="sm" onClick={() => router.back()} leftIcon={<ArrowLeft className="h-4 w-4" />} className="text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
               Back
             </Button>
             <h2 className="text-lg font-bold tracking-widest uppercase">YANTRI MATRIX HUB</h2>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-auto bg-slate-800 text-white border-slate-700" />
-            <Select value={selectedGameId} onChange={(e) => setSelectedGameId(e.target.value)} className="w-auto bg-slate-800 text-white border-slate-700">
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              wrapperClassName="w-40"
+              className="w-full bg-white text-slate-900 border-slate-200/80 dark:bg-slate-800 dark:text-white dark:border-slate-700"
+            />
+            <Select
+              value={selectedGameId}
+              onChange={(e) => setSelectedGameId(e.target.value)}
+              wrapperClassName="w-44"
+              className="w-full bg-white text-slate-900 border-slate-200/80 dark:bg-slate-800 dark:text-white dark:border-slate-700"
+            >
               {games.map((g) => (
                 <option key={g.GID} value={g.GID}>
                   {g.GameName}
                 </option>
               ))}
             </Select>
-            <Checkbox label="Negative Sale" checked={negativeSale} onChange={(e) => setNegativeSale(e.target.checked)} className="text-white" />
-            <Checkbox label="Shift A -> D" checked={shiftAtoD} onChange={(e) => setShiftAtoD(e.target.checked)} className="text-white" />
+            <Checkbox label="Negative Sale" checked={negativeSale} onChange={(e) => setNegativeSale(e.target.checked)} />
+            <Checkbox label="Shift A -> D" checked={shiftAtoD} onChange={(e) => setShiftAtoD(e.target.checked)} />
           </div>
         </div>
       </Card>

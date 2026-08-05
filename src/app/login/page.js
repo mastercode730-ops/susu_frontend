@@ -215,24 +215,24 @@ export default function LoginPage() {
   const closeModal = () => setActiveModal(null);
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-slate-950 px-4 py-12 overflow-hidden selection:bg-blue-500 selection:text-white">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12 overflow-hidden selection:bg-blue-500 selection:text-white transition-colors duration-200">
       {/* Background Decorative Glows */}
-      <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" />
-      <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-indigo-600/20 blur-3xl" />
+      <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-blue-600/10 dark:bg-blue-600/20 blur-3xl" />
+      <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-indigo-600/10 dark:bg-indigo-600/20 blur-3xl" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl"
+        className="relative z-10 w-full max-w-md rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl transition-all duration-200"
       >
         {/* Brand Identity */}
         <div className="text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 font-black text-2xl text-white shadow-lg shadow-blue-500/25">
             S9
           </div>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-white">SUSU9</h1>
-          <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-400">
+          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">SUSU9</h1>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
             Game Management Platform
           </p>
         </div>
@@ -250,7 +250,7 @@ export default function LoginPage() {
               setLoginErr('');
               setSubLoginErr('');
             }}
-            className="w-full justify-center bg-slate-950 p-1 border border-slate-800"
+            className="w-full justify-center bg-slate-100 dark:bg-slate-950 p-1 border border-slate-200/80 dark:border-slate-800"
           />
         </div>
 
@@ -280,7 +280,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="focus:outline-none text-slate-400 hover:text-white"
+                  className="focus:outline-none text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -288,7 +288,7 @@ export default function LoginPage() {
             />
 
             {loginErr && (
-              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center text-xs font-medium text-red-400">
+              <div className="rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 p-3 text-center text-xs font-medium text-red-600 dark:text-red-400">
                 {loginErr}
               </div>
             )}
@@ -348,7 +348,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="focus:outline-none text-slate-400 hover:text-white"
+                  className="focus:outline-none text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -356,7 +356,7 @@ export default function LoginPage() {
             />
 
             {subLoginErr && (
-              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center text-xs font-medium text-red-400">
+              <div className="rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 p-3 text-center text-xs font-medium text-red-600 dark:text-red-400">
                 {subLoginErr}
               </div>
             )}
@@ -384,7 +384,7 @@ export default function LoginPage() {
           </motion.div>
         )}
 
-        <div className="mt-8 border-t border-slate-800 pt-4 text-center text-[11px] text-slate-500">
+        <div className="mt-8 border-t border-slate-200 dark:border-slate-800 pt-4 text-center text-[11px] text-slate-500">
           © 2025 Susu9 Platform &nbsp;•&nbsp; Enterprise Security
         </div>
       </motion.div>
@@ -427,7 +427,7 @@ export default function LoginPage() {
           />
           {cpuErr && <p className="text-xs font-semibold text-red-500">{cpuErr}</p>}
           {cpuSuccess && <p className="text-xs font-semibold text-emerald-500">{cpuSuccess}</p>}
-          <Button className="w-full" isLoading={cpuLoading} onClick={handleResetPassword}>
+          <Button variant="primary" className="w-full font-bold uppercase tracking-wider" isLoading={cpuLoading} onClick={handleResetPassword}>
             CHANGE PASSWORD
           </Button>
         </div>
@@ -470,7 +470,7 @@ export default function LoginPage() {
           />
           {cpsErr && <p className="text-xs font-semibold text-red-500">{cpsErr}</p>}
           {cpsSuccess && <p className="text-xs font-semibold text-emerald-500">{cpsSuccess}</p>}
-          <Button className="w-full" isLoading={cpsLoading} onClick={handleResetSubPassword}>
+          <Button variant="primary" className="w-full font-bold uppercase tracking-wider" isLoading={cpsLoading} onClick={handleResetSubPassword}>
             CHANGE PASSWORD
           </Button>
         </div>
@@ -507,7 +507,7 @@ export default function LoginPage() {
           />
           {nuErr && <p className="text-xs font-semibold text-red-500">{nuErr}</p>}
           {nuSuccess && <p className="text-xs font-semibold text-emerald-500">{nuSuccess}</p>}
-          <Button className="w-full" isLoading={nuLoading} onClick={handleRegister}>
+          <Button variant="primary" className="w-full font-bold uppercase tracking-wider" isLoading={nuLoading} onClick={handleRegister}>
             CREATE ACCOUNT
           </Button>
         </div>

@@ -245,7 +245,7 @@ export default function AccessRightsPage() {
           </div>
 
           <div className="flex items-center gap-3 pt-2">
-            <Button onClick={handleSaveAccessRights} leftIcon={<Save className="h-4 w-4" />}>
+            <Button variant="primary" className="font-bold uppercase tracking-wider" onClick={handleSaveAccessRights} leftIcon={<Save className="h-4 w-4" />}>
               SAVE RIGHTS
             </Button>
             <Button variant="outline" onClick={handleResetPermissions} leftIcon={<RotateCcw className="h-4 w-4" />}>

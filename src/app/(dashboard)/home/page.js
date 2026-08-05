@@ -304,22 +304,22 @@ export default function HomePage() {
       </div>
 
       {/* Active Games Horizontal Live Bar */}
-      <Card className="p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white border-slate-800 shadow-lg">
+      <Card className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 text-slate-900 dark:text-white border border-slate-200/60 dark:border-slate-800 shadow-md dark:shadow-lg transition-all duration-200">
         <div className="flex items-center gap-2 mb-3">
-          <Zap className="h-4 w-4 text-emerald-400 animate-pulse" />
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+          <Zap className="h-4 w-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
             Active Games Live Ticker ({games.length})
           </span>
         </div>
         <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-thin">
           {games.length === 0 ? (
-            <span className="text-xs text-slate-400">No live games scheduled</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">No live games scheduled</span>
           ) : (
             games.map((g) => (
               <button
                 key={g.GID}
                 onClick={() => openMyGame(g.GID, g.GameName)}
-                className="group relative flex items-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-slate-800/80 px-4 py-2 text-xs font-bold transition-all hover:bg-emerald-600 hover:text-white shrink-0 shadow-sm"
+                className="group relative flex items-center gap-2.5 rounded-2xl border border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-slate-800/80 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 transition-all hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 shrink-0 shadow-sm"
               >
                 <span>{g.GameName}</span>
                 {g.DrawTime && (
