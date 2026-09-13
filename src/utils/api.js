@@ -17,6 +17,15 @@ export const API = {
         return { success: false, message: 'Unauthorized' };
       }
 
+      // A non-JSON body (an HTML 404/error page, usually from a backend
+      // route that doesn't exist yet or a proxy error) would otherwise
+      // throw a cryptic "Unexpected token '<'" SyntaxError out of res.json().
+      // Fail with a clear message instead.
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        return { success: false, message: `Server returned a non-JSON response (HTTP ${res.status}) for ${url} — is the backend running the latest code?` };
+      }
+
       const data = await res.json();
       return data;
     } catch (e) {

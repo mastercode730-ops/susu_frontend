@@ -156,8 +156,8 @@ export default function GamesPage() {
       accessorKey: 'GameName',
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Gamepad2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <span className="font-bold text-slate-900 dark:text-white capitalize">{row.original.GameName}</span>
+          <Gamepad2 className="h-4 w-4 text-blue-600" />
+          <span className="font-bold text-slate-900 capitalize">{row.original.GameName}</span>
         </div>
       ),
     },
@@ -165,7 +165,7 @@ export default function GamesPage() {
       header: 'Draw Time',
       accessorKey: 'DrawTime',
       cell: ({ row }) => (
-        <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold dark:text-slate-300">
+        <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold">
           <Clock className="h-3.5 w-3.5 text-slate-400" />
           <span>{row.original.DrawTime || '-'}</span>
         </div>
@@ -273,7 +273,7 @@ export default function GamesPage() {
                 <Checkbox label="Over Time Reject" checked={isRejectedMsg} onChange={(e) => setIsRejectedMsg(e.target.checked)} />
               </div>
 
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
                 <Button type="submit" isLoading={submitting} leftIcon={<Plus className="h-4 w-4" />}>
                   {gameID ? 'UPDATE GAME' : 'SAVE GAME'}
                 </Button>

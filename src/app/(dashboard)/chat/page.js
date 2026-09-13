@@ -173,7 +173,7 @@ function ChatWorkspace() {
                   className={`flex flex-col max-w-[75%] rounded-2xl p-4 text-xs font-mono shadow-xs ${
                     isSent
                       ? 'ml-auto bg-blue-600 text-white'
-                      : 'mr-auto bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100'
+                      : 'mr-auto bg-slate-100 text-slate-900'
                   }`}
                 >
                   <div className="font-bold whitespace-pre-wrap">{m.Message}</div>
@@ -190,7 +190,7 @@ function ChatWorkspace() {
         </CardContent>
 
         {/* Input Bar */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 space-y-3">
+        <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-3">
           {typedRows.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {typedRows.map((r, i) => (

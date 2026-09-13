@@ -216,7 +216,7 @@ export default function HisabPage() {
       cell: ({ row }) => (
         <button
           onClick={() => handleShowHistory(row.original.UID, 'game')}
-          className="font-bold text-xs text-blue-600 hover:underline dark:text-blue-400"
+          className="font-bold text-xs text-blue-600 hover:underline"
         >
           {row.original.CMobile || row.original.UID}
         </button>
@@ -226,7 +226,7 @@ export default function HisabPage() {
       header: 'Total Sale',
       accessorKey: 'TotalAmount',
       cell: ({ row }) => (
-        <span className="font-semibold text-xs text-slate-900 dark:text-white">
+        <span className="font-semibold text-xs text-slate-900">
           {formatCurrency(parseFloat(row.original.TotalAmount) || 0)}
         </span>
       ),
@@ -252,7 +252,7 @@ export default function HisabPage() {
       cell: ({ row }) => (
         <button
           onClick={() => handleShowHistory(row.original.UID, 'myhisab')}
-          className="font-bold text-xs text-blue-600 hover:underline dark:text-blue-400"
+          className="font-bold text-xs text-blue-600 hover:underline"
         >
           {row.original.Mobile || row.original.UID}
         </button>
@@ -262,7 +262,7 @@ export default function HisabPage() {
       header: 'Total Sale',
       accessorKey: 'TotalAmount',
       cell: ({ row }) => (
-        <span className="font-semibold text-xs text-slate-900 dark:text-white">
+        <span className="font-semibold text-xs text-slate-900">
           {formatCurrency(parseFloat(row.original.TotalAmount) || 0)}
         </span>
       ),
@@ -373,10 +373,10 @@ export default function HisabPage() {
           <p className="text-center text-xs text-slate-500 py-6">No history records found.</p>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-center text-xs">
-                  <thead className="bg-slate-50 font-bold uppercase text-slate-500 border-b border-slate-200 dark:bg-slate-800 dark:text-slate-400">
+                  <thead className="bg-slate-50 font-bold uppercase text-slate-500 border-b border-slate-200">
                     <tr>
                       <th className="p-3">Game</th>
                       <th className="p-3">Rates</th>
@@ -391,11 +391,11 @@ export default function HisabPage() {
                       <th className="p-3">Balance</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100">
                     {modalRows.map((d, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                        <td className="p-2.5 font-bold text-slate-900 dark:text-white capitalize">{d.GameName || '-'}</td>
-                        <td className="p-2.5 text-slate-600 dark:text-slate-300">{d.Rates || '-'}</td>
+                      <tr key={idx} className="hover:bg-slate-50/60">
+                        <td className="p-2.5 font-bold text-slate-900 capitalize">{d.GameName || '-'}</td>
+                        <td className="p-2.5 text-slate-600">{d.Rates || '-'}</td>
                         <td className="p-2.5 font-semibold">{d.Total_Amount || 0}</td>
                         <td className="p-2.5">{d.D_Sale || 0}</td>
                         <td className="p-2.5">{d.A_Sale || 0}</td>
@@ -408,7 +408,7 @@ export default function HisabPage() {
                       </tr>
                     ))}
                   </tbody>
-                  <tfoot className="bg-slate-100 font-bold dark:bg-slate-800">
+                  <tfoot className="bg-slate-100 font-bold">
                     <tr>
                       <td className="p-3">Total</td>
                       <td className="p-3">-</td>

@@ -16,6 +16,17 @@ import { DataTable } from '../../../components/tables/DataTable';
 import { Dialog } from '../../../components/ui/dialog';
 import { LoadingSpinner } from '../../../components/ui/spinner';
 
+// Dense "label beside field" row — matches the compact, professional data-entry
+// form layout requested for this page (label bold + dark, field to the right).
+function FormRow({ label, children, className }) {
+  return (
+    <div className={`grid grid-cols-[112px_1fr] items-center gap-x-3 ${className || ''}`}>
+      <label className="text-sm font-bold text-slate-800">{label}</label>
+      {children}
+    </div>
+  );
+}
+
 export default function ContactsPage() {
   const { user } = useAuth();
   const isSuperAdmin = user?.SuperAdmin === 'SuperAdmin';
@@ -416,8 +427,8 @@ export default function ContactsPage() {
               {name.charAt(0)}
             </div>
             <div>
-              <div className="font-bold text-slate-900 dark:text-white capitalize">{name}</div>
-              <div className="text-xs text-slate-500 font-mono">{mob}</div>
+              <div className="font-bold text-slate-900 capitalize">{name}</div>
+              <div className="text-xs text-slate-700 font-bold font-mono">{mob}</div>
             </div>
           </div>
         );
@@ -522,90 +533,117 @@ export default function ContactsPage() {
         <div className={hideList ? 'lg:col-span-12' : 'lg:col-span-5'}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{cid ? 'Edit Contact' : 'Create New Contact'}</CardTitle>
+              <CardTitle className="text-slate-900 font-extrabold">
+                {cid ? 'Edit Contact' : 'New Contact'}
+              </CardTitle>
               {cid && (
                 <Button variant="success" size="sm" onClick={handleResetForm} leftIcon={<Plus className="h-3.5 w-3.5" />}>
                   New Contact
                 </Button>
               )}
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CardContent className="space-y-3.5">
+              <FormRow label="Contact Name">
                 <Input
-                  label="Contact Name"
                   placeholder="Enter Name"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
+                  className="font-semibold text-slate-900"
                 />
+              </FormRow>
+
+              <FormRow label="Mobile">
                 <Input
-                  label="Mobile Number"
                   placeholder="10 digit Mobile"
                   maxLength={10}
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value.replace(/[^0-9]/g, ''))}
                   disabled={!!cid}
+                  className="font-semibold text-slate-900"
                 />
-              </div>
+              </FormRow>
 
-              {/* Standard Rates Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Input label="D Comm (%)" type="number" value={dPComm} onChange={(e) => setDPComm(e.target.value)} disabled={ratesReadonly} />
-                <Input label="D Amt" type="number" value={dAmt} onChange={(e) => setDAmt(e.target.value)} disabled={ratesReadonly} />
-                <Input label="A Comm (%)" type="number" value={aPComm} onChange={(e) => setAPComm(e.target.value)} disabled={ratesReadonly} />
-                <Input label="A Amt" type="number" value={aAmt} onChange={(e) => setAAmt(e.target.value)} disabled={ratesReadonly} />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Input label="Patti (%)" type="number" value={patti} onChange={(e) => setPatti(e.target.value)} disabled={ratesReadonly} />
-                <Input label="Loss Cut (LC)" type="number" value={lc} onChange={(e) => setLc(e.target.value)} />
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                <FormRow label="D Comm %">
+                  <Input type="number" value={dPComm} onChange={(e) => setDPComm(e.target.value)} disabled={ratesReadonly} className="font-bold text-slate-900" />
+                </FormRow>
+                <FormRow label="D Amt">
+                  <Input type="number" value={dAmt} onChange={(e) => setDAmt(e.target.value)} disabled={ratesReadonly} className="font-bold text-slate-900" />
+                </FormRow>
+                <FormRow label="A Comm %">
+                  <Input type="number" value={aPComm} onChange={(e) => setAPComm(e.target.value)} disabled={ratesReadonly} className="font-bold text-slate-900" />
+                </FormRow>
+                <FormRow label="A Amt">
+                  <Input type="number" value={aAmt} onChange={(e) => setAAmt(e.target.value)} disabled={ratesReadonly} className="font-bold text-slate-900" />
+                </FormRow>
+                <FormRow label="Patti %">
+                  <Input type="number" value={patti} onChange={(e) => setPatti(e.target.value)} disabled={ratesReadonly} className="font-bold text-slate-900" />
+                </FormRow>
+                <FormRow label="LC %">
+                  <Input type="number" value={lc} onChange={(e) => setLc(e.target.value)} className="font-bold text-slate-900" />
+                </FormRow>
               </div>
 
               {/* 3rd Party Settings Header */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <div className="pt-2.5 border-t border-slate-200">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-blue-700">
                   3rd Party Commission Rules
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Select label="3rd Hissa Party" value={hissaPartyID} onChange={(e) => setHissaPartyID(e.target.value)}>
-                  <option value="0">Select Customer Name</option>
-                  {contacts.map((c) => (
-                    <option value={c.CID} key={c.CID}>
-                      {c.CustomerName}
-                    </option>
-                  ))}
-                </Select>
-                <Input label="Hissa (%)" type="number" value={hissaPer} onChange={(e) => setHissaPer(e.target.value)} />
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                <FormRow label="Hissa Party" className="col-span-2">
+                  <Select value={hissaPartyID} onChange={(e) => setHissaPartyID(e.target.value)} className="font-semibold text-slate-900">
+                    <option value="0">Select Customer Name</option>
+                    {contacts.map((c) => (
+                      <option value={c.CID} key={c.CID}>
+                        {c.CustomerName}
+                      </option>
+                    ))}
+                  </Select>
+                </FormRow>
+                <FormRow label="Hissa %">
+                  <Input type="number" value={hissaPer} onChange={(e) => setHissaPer(e.target.value)} className="font-bold text-slate-900" />
+                </FormRow>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Select label="3rd Comm Party" value={commPartyID} onChange={(e) => setCommPartyID(e.target.value)}>
-                  <option value="0">Select Customer</option>
-                  {contacts.map((c) => (
-                    <option value={c.CID} key={c.CID}>
-                      {c.CustomerName}
-                    </option>
-                  ))}
-                </Select>
-                <Input label="Dara (%)" type="number" value={daraCommPer} onChange={(e) => setDaraCommPer(e.target.value)} />
-                <Input label="Akhar (%)" type="number" value={akharCommPer} onChange={(e) => setAkharCommPer(e.target.value)} />
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                <FormRow label="Comm Party" className="col-span-2">
+                  <Select value={commPartyID} onChange={(e) => setCommPartyID(e.target.value)} className="font-semibold text-slate-900">
+                    <option value="0">Select Customer</option>
+                    {contacts.map((c) => (
+                      <option value={c.CID} key={c.CID}>
+                        {c.CustomerName}
+                      </option>
+                    ))}
+                  </Select>
+                </FormRow>
+                <FormRow label="Dara %">
+                  <Input type="number" value={daraCommPer} onChange={(e) => setDaraCommPer(e.target.value)} className="font-bold text-slate-900" />
+                </FormRow>
+                <FormRow label="Akhar %">
+                  <Input type="number" value={akharCommPer} onChange={(e) => setAkharCommPer(e.target.value)} className="font-bold text-slate-900" />
+                </FormRow>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Select label="3rd LC Party" value={lcPartyID} onChange={(e) => setLcPartyID(e.target.value)}>
-                  <option value="0">Select Customer</option>
-                  {contacts.map((c) => (
-                    <option value={c.CID} key={c.CID}>
-                      {c.CustomerName}
-                    </option>
-                  ))}
-                </Select>
-                <Input label="LC (%)" type="number" value={lcCommPer} onChange={(e) => setLcCommPer(e.target.value)} />
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                <FormRow label="LC Party" className="col-span-2">
+                  <Select value={lcPartyID} onChange={(e) => setLcPartyID(e.target.value)} className="font-semibold text-slate-900">
+                    <option value="0">Select Customer</option>
+                    {contacts.map((c) => (
+                      <option value={c.CID} key={c.CID}>
+                        {c.CustomerName}
+                      </option>
+                    ))}
+                  </Select>
+                </FormRow>
+                <FormRow label="LC %">
+                  <Input type="number" value={lcCommPer} onChange={(e) => setLcCommPer(e.target.value)} className="font-bold text-slate-900" />
+                </FormRow>
               </div>
 
               {/* Checkbox Flags */}
-              <div className="flex flex-wrap gap-4 pt-2">
+              <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2 border-t border-slate-200">
                 <Checkbox label="Self Commission" checked={selfComm} onChange={(e) => setSelfComm(e.target.checked)} />
                 <Checkbox label="Yantri To" checked={yantriTo} onChange={(e) => setYantriTo(e.target.checked)} />
                 <Checkbox label="Limit" checked={isLimit} onChange={(e) => setIsLimit(e.target.checked)} />
@@ -613,9 +651,9 @@ export default function ContactsPage() {
               </div>
 
               {/* Submit Buttons */}
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <Button className="flex-1" isLoading={savingContact} onClick={handleSaveContact}>
-                  {cid ? 'UPDATE CONTACT' : 'SAVE CONTACT'}
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-200">
+                <Button className="flex-1 font-bold uppercase tracking-wider" isLoading={savingContact} onClick={handleSaveContact}>
+                  {cid ? 'Update Contact' : 'Save'}
                 </Button>
                 {cid && (
                   <Button variant="danger" onClick={handleDeleteCustomer} leftIcon={<Trash2 className="h-4 w-4" />}>
@@ -632,27 +670,41 @@ export default function ContactsPage() {
           <div className="lg:col-span-7">
             <Card>
               <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <CardTitle>Contacts Directory ({filteredContacts.length})</CardTitle>
-                {isSuperAdmin && (
-                  <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs dark:bg-slate-800">
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-slate-900 font-extrabold">
+                    Contacts Directory ({filteredContacts.length})
+                  </CardTitle>
+                  {isSuperAdmin && activeFilter !== 'all' && (
                     <button
                       onClick={() => setActiveFilter('all')}
-                      className={`px-3 py-1 font-semibold rounded-lg ${activeFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
+                      className="text-xs font-bold text-blue-700 underline underline-offset-2 hover:text-blue-800"
                     >
-                      All
+                      View All
                     </button>
-                    <button
-                      onClick={() => setActiveFilter('active')}
-                      className={`px-3 py-1 font-semibold rounded-lg ${activeFilter === 'active' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
-                    >
+                  )}
+                </div>
+                {isSuperAdmin && (
+                  <div className="flex items-center gap-4 text-sm font-bold">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-slate-800">
+                      <input
+                        type="radio"
+                        name="activeFilter"
+                        checked={activeFilter === 'active'}
+                        onChange={() => setActiveFilter('active')}
+                        className="h-3.5 w-3.5 accent-emerald-600"
+                      />
                       Active
-                    </button>
-                    <button
-                      onClick={() => setActiveFilter('inactive')}
-                      className={`px-3 py-1 font-semibold rounded-lg ${activeFilter === 'inactive' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
-                    >
-                      Inactive
-                    </button>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer text-slate-800">
+                      <input
+                        type="radio"
+                        name="activeFilter"
+                        checked={activeFilter === 'inactive'}
+                        onChange={() => setActiveFilter('inactive')}
+                        className="h-3.5 w-3.5 accent-rose-600"
+                      />
+                      Deactivate
+                    </label>
                   </div>
                 )}
               </CardHeader>
@@ -697,7 +749,7 @@ export default function ContactsPage() {
             )}
           </div>
 
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="pt-4 border-t border-slate-100">
             {loadingRates ? (
               <LoadingSpinner text="Fetching rates..." />
             ) : ratesList.length === 0 ? (
@@ -707,11 +759,11 @@ export default function ContactsPage() {
                 {ratesList.map((d, i) => (
                   <div
                     key={d.RateID || i}
-                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-900"
+                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs"
                   >
                     <div>
-                      <span className="font-bold text-slate-900 dark:text-white mr-2">#{i + 1}</span>
-                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                      <span className="font-bold text-slate-900 mr-2">#{i + 1}</span>
+                      <span className="font-semibold text-blue-600">
                         {d.D_PComm}/{d.D_Amt}-{d.A_PComm}/{d.A_Amt}-{d.Patti}
                       </span>
                     </div>

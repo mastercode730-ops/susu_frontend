@@ -119,7 +119,7 @@ export default function AbsentCustomersPage() {
       header: 'Customer Name',
       accessorKey: 'CustomerName',
       cell: ({ row }) => (
-        <span className="font-bold text-xs capitalize text-slate-900 dark:text-white">
+        <span className="font-bold text-xs capitalize text-slate-900">
           {row.original.CustomerName || '-'}
         </span>
       ),
@@ -127,7 +127,7 @@ export default function AbsentCustomersPage() {
     {
       header: 'Mobile Number',
       accessorKey: 'Mobile',
-      cell: ({ row }) => <span className="text-xs font-mono text-slate-600 dark:text-slate-300">{row.original.Mobile || '-'}</span>,
+      cell: ({ row }) => <span className="text-xs font-mono text-slate-600">{row.original.Mobile || '-'}</span>,
     },
   ];
 

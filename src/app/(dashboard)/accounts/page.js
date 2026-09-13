@@ -317,7 +317,7 @@ export default function AccountsPage() {
       header: 'Customer',
       accessorKey: 'CustomerName',
       cell: ({ row }) => (
-        <span className="font-bold text-xs capitalize text-slate-900 dark:text-white">
+        <span className="font-bold text-xs capitalize text-slate-900">
           {row.original.CustomerName || '-'}
         </span>
       ),
@@ -328,7 +328,7 @@ export default function AccountsPage() {
       cell: ({ row }) => {
         const p = parseFloat(row.original.Paid) || 0;
         return p > 0 ? (
-          <span className="font-bold text-xs text-rose-600 dark:text-rose-400">{formatCurrency(p)}</span>
+          <span className="font-bold text-xs text-rose-600">{formatCurrency(p)}</span>
         ) : (
           <span className="text-xs text-slate-400">-</span>
         );
@@ -340,7 +340,7 @@ export default function AccountsPage() {
       cell: ({ row }) => {
         const r = parseFloat(row.original.Received) || 0;
         return r > 0 ? (
-          <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400">{formatCurrency(r)}</span>
+          <span className="font-bold text-xs text-emerald-600">{formatCurrency(r)}</span>
         ) : (
           <span className="text-xs text-slate-400">-</span>
         );
@@ -412,7 +412,7 @@ export default function AccountsPage() {
 
                 {/* Customer Autocomplete Input */}
                 <div className="space-y-1.5" ref={custFormWrapRef}>
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                     Customer Name
                   </label>
                   <div className="relative">
@@ -426,12 +426,12 @@ export default function AccountsPage() {
                       onFocus={() => setShowCustDropdown(true)}
                     />
                     {showCustDropdown && (
-                      <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+                      <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
                         {getFilteredCustomers().map((c, idx) => (
                           <div
                             key={c.UID || idx}
                             onMouseDown={() => handleSelectCustomer(c)}
-                            className="px-3 py-2 text-xs font-medium cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100"
+                            className="px-3 py-2 text-xs font-medium cursor-pointer hover:bg-slate-100 text-slate-900"
                           >
                             {c.Name}
                           </div>
@@ -483,7 +483,7 @@ export default function AccountsPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
                 <Button variant="primary" className="flex-1 font-bold uppercase tracking-wider" onClick={handleSaveTransaction} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
                   SUBMIT ENTRY
                 </Button>

@@ -146,7 +146,7 @@ export default function DateWiseHisabPage() {
       cell: ({ row }) => (
         <button
           onClick={() => handleShowHistory(row.original)}
-          className="font-bold text-xs text-blue-600 hover:underline dark:text-blue-400"
+          className="font-bold text-xs text-blue-600 hover:underline"
         >
           {row.original.Mobile || row.original.fSenderID}
         </button>
@@ -156,7 +156,7 @@ export default function DateWiseHisabPage() {
       header: 'Total Sale',
       accessorKey: 'Total_Amount',
       cell: ({ row }) => (
-        <span className="font-bold text-xs text-slate-900 dark:text-white">
+        <span className="font-bold text-xs text-slate-900">
           {formatCurrency(parseFloat(row.original.Total_Amount) || 0)}
         </span>
       ),
@@ -245,10 +245,10 @@ export default function DateWiseHisabPage() {
           <p className="text-center text-xs text-slate-500 py-6">No matching record detail.</p>
         ) : (
           <div className="space-y-3">
-            <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+            <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs">
               <div className="flex justify-between py-1.5 font-semibold">
                 <span className="text-slate-500">Total Sale</span>
-                <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(modalData.Total_Amount)}</span>
+                <span className="font-bold text-slate-900">{formatCurrency(modalData.Total_Amount)}</span>
               </div>
               <div className="flex justify-between py-1.5 font-semibold">
                 <span className="text-slate-500">Dara Sale</span>
@@ -266,9 +266,9 @@ export default function DateWiseHisabPage() {
                 <span className="text-slate-500">Win Amount</span>
                 <span className="text-emerald-600">{formatCurrency(modalData.WinAmount)}</span>
               </div>
-              <div className="flex justify-between py-1.5 font-bold border-t border-slate-200 dark:border-slate-800 pt-2 text-sm">
-                <span className="text-blue-600 dark:text-blue-400">Net Balance</span>
-                <span className="text-blue-600 dark:text-blue-400">{formatCurrency(modalData.Balance)}</span>
+              <div className="flex justify-between py-1.5 font-bold border-t border-slate-200 pt-2 text-sm">
+                <span className="text-blue-600">Net Balance</span>
+                <span className="text-blue-600">{formatCurrency(modalData.Balance)}</span>
               </div>
             </div>
           </div>

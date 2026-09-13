@@ -179,10 +179,10 @@ function YantriWorkspace() {
   return (
     <div className="space-y-4">
       {/* Workspace Bar */}
-      <Card className="p-4 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white border border-slate-200/60 dark:border-slate-800 shadow-sm">
+      <Card className="p-4 bg-slate-50 text-slate-900 border border-slate-200/60 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => router.back()} leftIcon={<ArrowLeft className="h-4 w-4" />} className="text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
+            <Button variant="ghost" size="sm" onClick={() => router.back()} leftIcon={<ArrowLeft className="h-4 w-4" />} className="text-slate-700 hover:bg-slate-100">
               Back
             </Button>
             <h2 className="text-lg font-bold tracking-widest uppercase">YANTRI MATRIX HUB</h2>
@@ -194,13 +194,13 @@ function YantriWorkspace() {
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               wrapperClassName="w-40"
-              className="w-full bg-white text-slate-900 border-slate-200/80 dark:bg-slate-800 dark:text-white dark:border-slate-700"
+              className="w-full bg-white text-slate-900 border-slate-200/80"
             />
             <Select
               value={selectedGameId}
               onChange={(e) => setSelectedGameId(e.target.value)}
               wrapperClassName="w-44"
-              className="w-full bg-white text-slate-900 border-slate-200/80 dark:bg-slate-800 dark:text-white dark:border-slate-700"
+              className="w-full bg-white text-slate-900 border-slate-200/80"
             >
               {games.map((g) => (
                 <option key={g.GID} value={g.GID}>
@@ -228,13 +228,13 @@ function YantriWorkspace() {
                     {Array.from({ length: 10 }).map((_, colIdx) => {
                       const num = start + colIdx;
                       return (
-                        <div key={num} className="rounded-lg border border-slate-200 bg-white p-2 text-xs font-bold dark:border-slate-800 dark:bg-slate-900">
-                          <span className="block text-[10px] text-blue-600 dark:text-blue-400">{String(num).padStart(2, '0')}</span>
-                          <span className="text-sm font-extrabold text-slate-900 dark:text-white">{numValues[num] || '-'}</span>
+                        <div key={num} className="rounded-lg border border-slate-200 bg-white p-2 text-xs font-bold">
+                          <span className="block text-[10px] text-blue-600">{String(num).padStart(2, '0')}</span>
+                          <span className="text-sm font-extrabold text-slate-900">{numValues[num] || '-'}</span>
                         </div>
                       );
                     })}
-                    <div className="rounded-lg border border-emerald-300 bg-emerald-50/50 p-2 text-xs font-bold dark:border-emerald-800 dark:bg-emerald-950/40">
+                    <div className="rounded-lg border border-emerald-300 bg-emerald-50/50 p-2 text-xs font-bold">
                       <span className="block text-[10px] text-emerald-600">TOT</span>
                       <span className="text-sm font-extrabold text-emerald-600">{totals.rowTotals[rowIdx]}</span>
                     </div>
@@ -249,15 +249,15 @@ function YantriWorkspace() {
         <Card className="p-6 space-y-6">
           <CardTitle>Matrix Summaries</CardTitle>
           <div className="space-y-3 font-mono text-sm">
-            <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex justify-between py-2 border-b border-slate-100">
               <span className="text-slate-500">Dara Sale</span>
-              <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(totals.dSale)}</span>
+              <span className="font-bold text-slate-900">{formatCurrency(totals.dSale)}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex justify-between py-2 border-b border-slate-100">
               <span className="text-slate-500">Akhar Sale</span>
-              <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(totals.aSale)}</span>
+              <span className="font-bold text-slate-900">{formatCurrency(totals.aSale)}</span>
             </div>
-            <div className="flex justify-between py-3 font-extrabold text-lg text-emerald-600 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex justify-between py-3 font-extrabold text-lg text-emerald-600 border-t border-slate-200">
               <span>Grand Total</span>
               <span>{formatCurrency(totals.grand)}</span>
             </div>

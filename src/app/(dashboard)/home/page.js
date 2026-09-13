@@ -2,29 +2,15 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Search,
-  Gamepad2,
-  Users,
-  ArrowLeft,
-  ChevronRight,
-  Sparkles,
-  Zap,
-  CheckCircle2,
-  Clock,
-  MessageSquare,
-  Activity,
-} from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { API } from '../../../utils/api';
-import { Input } from '../../../components/ui/input';
-import { Button } from '../../../components/ui/button';
-import { Card, StatCard } from '../../../components/ui/card';
-import { Badge } from '../../../components/ui/badge';
-import { EmptyState } from '../../../components/ui/empty-state';
 import { LoadingSpinner } from '../../../components/ui/spinner';
-import { PageHeader } from '../../../components/layout/PageHeader';
+
+// WhatsApp-style green palette, scoped to this page only (matches the
+// reference dashboard design — intentionally not the app's blue theme).
+const GREEN = '#25d366';
+const GREEN2 = '#128c7e';
+const GREEN3 = '#075e54';
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -46,7 +32,7 @@ export default function HomePage() {
   const [selectedContactGames, setSelectedContactGames] = useState([]);
   const [loadingContactGames, setLoadingContactGames] = useState(false);
   const [gameRates, setGameRates] = useState([]);
-  const [pendingGameSelection, setPendingGameSelection] = useState(null); // { gameID, gameName, selUID }
+  const [pendingGameSelection, setPendingGameSelection] = useState(null); // { gameID, gameName, realUID }
 
   const searchTimer = useRef(null);
 
@@ -266,103 +252,59 @@ export default function HomePage() {
   const activeContactList = isSearching ? searchResults : contacts;
 
   return (
-    <div className="space-y-6">
-      {/* Top Page Header */}
-      <PageHeader
-        title="Dashboard & Game Hub"
-        description="Select a customer contact to launch live bets or view active draw games."
-      />
-
-      {/* Analytics Stat Cards Header */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Active Games"
-          value={games.length}
-          icon={Gamepad2}
-          description="Live drawing games available"
-        />
-        <StatCard
-          title="Total Contacts"
-          value={contacts.length}
-          icon={Users}
-          description="Registered customer contacts"
-        />
-        <StatCard
-          title="Unread Messages"
-          value={games.reduce((acc, g) => acc + (parseInt(g.UnReadTotal) || 0), 0)}
-          icon={MessageSquare}
-          description="Pending chats across all games"
-        />
-        <StatCard
-          title="Platform Status"
-          value="Operational"
-          icon={Activity}
-          trend="up"
-          change="Live"
-          description="Realtime sync active"
-        />
+    <div className="flex flex-col h-[calc(100vh-9rem)] min-h-[560px] overflow-hidden rounded-2xl border border-[#dee2e6] bg-[#f4f6f9] shadow-sm">
+      {/* Games bar — horizontal live ticker of pill buttons, WhatsApp-green style */}
+      <div className="flex items-center gap-2.5 overflow-x-auto rounded-t-2xl border-b border-[#dee2e6] bg-white px-4 py-3 shrink-0">
+        {games.length === 0 ? (
+          <span className="text-xs text-[#6c757d] py-1.5">No live games scheduled</span>
+        ) : (
+          games.map((g) => (
+            <button
+              key={g.GID}
+              onClick={() => openMyGame(g.GID, g.GameName)}
+              className="group relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border-2 bg-white px-4 py-2 font-bold transition-colors"
+              style={{ borderColor: GREEN, color: GREEN3 }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = GREEN; e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = GREEN3; }}
+            >
+              <span className="text-sm capitalize">{g.GameName}</span>
+              {g.DrawTime && <span className="text-[11px] font-medium opacity-70">{g.DrawTime}</span>}
+              {parseInt(g.UnReadTotal) > 0 && (
+                <span className="absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-sm">
+                  {g.UnReadTotal}
+                </span>
+              )}
+            </button>
+          ))
+        )}
       </div>
 
-      {/* Active Games Horizontal Live Bar */}
-      <Card className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 text-slate-900 dark:text-white border border-slate-200/60 dark:border-slate-800 shadow-md dark:shadow-lg transition-all duration-200">
-        <div className="flex items-center gap-2 mb-3">
-          <Zap className="h-4 w-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-            Active Games Live Ticker ({games.length})
-          </span>
-        </div>
-        <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-thin">
-          {games.length === 0 ? (
-            <span className="text-xs text-slate-500 dark:text-slate-400">No live games scheduled</span>
-          ) : (
-            games.map((g) => (
-              <button
-                key={g.GID}
-                onClick={() => openMyGame(g.GID, g.GameName)}
-                className="group relative flex items-center gap-2.5 rounded-2xl border border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-slate-800/80 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 transition-all hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 shrink-0 shadow-sm"
-              >
-                <span>{g.GameName}</span>
-                {g.DrawTime && (
-                  <span className="flex items-center gap-1 text-[10px] opacity-80">
-                    <Clock className="h-3 w-3" />
-                    {g.DrawTime}
-                  </span>
-                )}
-                {parseInt(g.UnReadTotal) > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white shadow-sm">
-                    {g.UnReadTotal}
-                  </span>
-                )}
-              </button>
-            ))
-          )}
-        </div>
-      </Card>
-
-      {/* Main Two-Panel Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
-        {/* Left Contacts List Panel */}
-        <Card className={panelView === 'ws' ? 'lg:col-span-5 flex flex-col p-4' : 'hidden lg:flex lg:col-span-5 flex-col p-4'}>
-          <div className="mb-4">
-            <Input
-              placeholder="Search contact by name or mobile..."
+      {/* Main two-panel layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left contacts panel */}
+        <div className={`w-full lg:w-[380px] lg:shrink-0 flex-col overflow-hidden border-r border-[#dee2e6] bg-[#f4f6f9] ${panelView === 'ws' ? 'flex' : 'hidden lg:flex'}`}>
+          <div className="p-3.5 shrink-0">
+            <input
+              type="text"
+              placeholder="Search Name / Mobile.."
               value={searchQuery}
               onChange={handleSearchChange}
-              leftIcon={<Search className="h-4 w-4" />}
+              className="w-full rounded-md border border-[#ced4da] bg-white px-3.5 h-[42px] text-[15px] text-slate-900 outline-none transition-shadow focus:shadow-[0_0_0_3px_rgba(37,211,102,0.12)]"
+              style={{ borderColor: '#ced4da' }}
+              onFocus={(e) => { e.target.style.borderColor = GREEN; }}
+              onBlur={(e) => { e.target.style.borderColor = '#ced4da'; }}
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto max-h-[480px] space-y-2 pr-1">
-            <div className="flex items-center justify-between px-1 pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                {isSearching ? 'Search Results' : 'Contacts'} ({activeContactList.length})
-              </span>
+          <div className="flex-1 overflow-y-auto px-3.5 pb-3.5 space-y-2">
+            <div className="sticky top-0 z-10 bg-[#f4f6f9] py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#6c757d]">
+              {isSearching ? 'Search Results' : 'Contacts'} ({activeContactList.length})
             </div>
 
             {loadingContacts ? (
               <LoadingSpinner text="Fetching contacts..." />
             ) : activeContactList.length === 0 ? (
-              <EmptyState title="No contacts found" description="Try searching another contact." />
+              <div className="text-center py-10 text-sm text-[#6c757d]">No contacts found</div>
             ) : (
               activeContactList.map((c, i) => {
                 const name = c.CustomerName || c.Mobile || 'Unknown';
@@ -374,100 +316,84 @@ export default function HomePage() {
                   <div
                     key={c.CID || i}
                     onClick={() => handlePickContact(c)}
-                    className={`flex items-center justify-between rounded-xl p-3.5 cursor-pointer transition-all duration-150 border ${isSel
-                        ? 'border-blue-500 bg-blue-50/60 dark:bg-blue-950/30'
-                        : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60'
-                      }`}
+                    className="flex items-center gap-2.5 rounded-2xl border bg-white px-4 py-3.5 cursor-pointer transition-colors hover:bg-[#f5f5f5]"
+                    style={{ borderColor: isSel ? GREEN : '#e9ecef' }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white font-bold text-sm uppercase">
-                        {name.charAt(0)}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-[15px] capitalize truncate" style={{ color: GREEN2 }}>
+                        {name}
                       </div>
-                      <div>
-                        <div className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-                          {name}
-                        </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                          {mob}
-                        </div>
-                      </div>
+                      <div className="text-[13px] font-bold text-black/80 mt-0.5">{mob}</div>
                     </div>
                     {ur > 0 && (
-                      <Badge variant="primary" dot>
+                      <div
+                        className="flex h-[25px] w-[25px] shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold text-white"
+                        style={{ background: GREEN }}
+                      >
                         {ur}
-                      </Badge>
+                      </div>
                     )}
                   </div>
                 );
               })
             )}
           </div>
-        </Card>
+        </div>
 
-        {/* Right Detail Panel */}
-        <Card className={panelView === 'ws' ? 'hidden lg:flex lg:col-span-7 flex-col p-6 items-center justify-center' : 'lg:col-span-7 flex flex-col p-6'}>
-          {/* Welcome Screen */}
+        {/* Right detail panel */}
+        <div className={`flex-1 flex-col overflow-hidden bg-[#f4f6f9] ${panelView === 'ws' ? 'hidden lg:flex' : 'flex'}`}>
+          {/* Welcome screen */}
           {panelView === 'ws' && (
-            <div className="text-center py-16 space-y-4">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
-                <Sparkles className="h-8 w-8" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                Susu9 Game Hub
-              </h3>
-              <p className="max-w-xs text-xs text-slate-500 dark:text-slate-400">
-                Select a customer contact from the left list to view active games & start entering bets.
-              </p>
+            <div className="flex flex-1 flex-col items-center justify-center gap-2.5 text-center px-6">
+              <div className="text-6xl opacity-10">💬</div>
+              <div className="text-lg font-semibold text-[#495057]">Welcome to Susu9</div>
+              <div className="text-sm text-[#6c757d]">Select a contact to start</div>
             </div>
           )}
 
-          {/* Games Selection Panel for picked contact */}
+          {/* Games selection panel for picked contact */}
           {panelView === 'gp' && selectedContact && (
-            <div className="flex flex-col h-full space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="icon-sm" onClick={handleBack}>
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white font-bold text-sm uppercase">
-                    {selectedContact.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white capitalize">
-                      {selectedContact.name}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{selectedContact.mob}</p>
-                  </div>
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <div className="flex items-center gap-2.5 border-b border-[#dee2e6] bg-white px-3.5 py-2.5 shrink-0">
+                <button
+                  onClick={handleBack}
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-lg text-[#6c757d] hover:bg-[#f1f3f5] hover:text-[#212529]"
+                >
+                  ←
+                </button>
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold text-sm uppercase text-white"
+                  style={{ background: GREEN2 }}
+                >
+                  {selectedContact.name.charAt(0)}
+                </div>
+                <div>
+                  <div className="text-[15px] font-semibold text-[#212529]">{selectedContact.name}</div>
+                  <div className="text-xs text-[#6c757d]">{selectedContact.mob}</div>
                 </div>
               </div>
 
               {loadingContactGames ? (
-                <LoadingSpinner text="Fetching available games for customer..." />
+                <div className="flex-1 flex items-center justify-center">
+                  <LoadingSpinner text="Fetching available games for customer..." />
+                </div>
               ) : selectedContactGames.length === 0 ? (
-                <EmptyState title="No games available" description="This customer has no active game rates configured." />
+                <div className="flex-1 flex items-center justify-center text-sm text-[#6c757d]">No games available</div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[400px]">
+                <div className="flex-1 overflow-y-auto p-3.5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 content-start">
                   {selectedContactGames.map((g) => (
                     <div
                       key={g.GID}
                       onClick={() => handlePickGame(g.GID, g.GameName, selectedContact.uid)}
-                      className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 cursor-pointer transition-all hover:border-blue-500 hover:bg-blue-50/50 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500"
+                      className="rounded-xl border bg-white px-3 py-4 text-center cursor-pointer transition-colors"
+                      style={{ borderColor: '#e9ecef' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#e7f8ee'; e.currentTarget.style.borderColor = GREEN; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#e9ecef'; }}
                     >
-                      <div>
-                        <div className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-                          {g.GameName}
-                        </div>
-                        {g.DrawTime && (
-                          <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
-                            <Clock className="h-3 w-3" />
-                            {g.DrawTime}
-                          </div>
-                        )}
+                      <div className="font-bold text-lg tracking-wide capitalize" style={{ color: GREEN2 }}>
+                        {g.GameName}
                       </div>
-                      <div className="mt-4 flex items-center justify-between text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
-                        <span>Select Game</span>
-                        <ChevronRight className="h-4 w-4" />
-                      </div>
+                      {g.DrawTime && <div className="mt-1 text-xs text-[#6c757d]">{g.DrawTime}</div>}
                     </div>
                   ))}
                 </div>
@@ -475,45 +401,49 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Rates Selection Panel */}
+          {/* Rates selection panel */}
           {panelView === 'rp' && selectedContact && pendingGameSelection && (
-            <div className="flex flex-col h-full space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="icon-sm" onClick={() => showP('gp')}>
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white capitalize">
-                      {selectedContact.name} ({selectedContact.mob})
-                    </h3>
-                    <p className="text-xs text-blue-600 font-semibold dark:text-blue-400">
-                      Game: {pendingGameSelection.gameName} — Choose Rate
-                    </p>
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <div className="flex items-center gap-2.5 border-b border-[#dee2e6] bg-white px-3.5 py-2.5 shrink-0">
+                <button
+                  onClick={() => showP('gp')}
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-lg text-[#6c757d] hover:bg-[#f1f3f5] hover:text-[#212529]"
+                >
+                  ←
+                </button>
+                <div>
+                  <div className="text-[15px] font-semibold text-[#212529] capitalize">
+                    {selectedContact.name} — {selectedContact.mob}
+                  </div>
+                  <div className="text-xs" style={{ color: GREEN2 }}>
+                    Game: {pendingGameSelection.gameName} — Choose Rate
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-3 overflow-y-auto max-h-[400px]">
+              <div className="flex-1 overflow-y-auto p-3.5 space-y-2">
                 {gameRates.map((d, idx) => (
                   <div
                     key={d.RateID || idx}
                     onClick={() => handlePickRate(d)}
-                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 cursor-pointer transition-all hover:border-emerald-500 hover:bg-emerald-50/50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-500"
+                    className="flex items-center justify-between rounded-xl border bg-white px-4 py-3 cursor-pointer transition-colors"
+                    style={{ borderColor: '#e9ecef' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#e7f8ee'; e.currentTarget.style.borderColor = GREEN; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#e9ecef'; }}
                   >
                     <div>
-                      <div className="text-base font-bold text-slate-900 dark:text-white">{d.Rate}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">
+                      <div className="font-bold text-lg" style={{ color: GREEN2 }}>{d.Rate}</div>
+                      <div className="text-xs text-[#6c757d] mt-0.5">
                         D: {d.D_PComm}/{d.D_Amt} | A: {d.A_PComm}/{d.A_Amt} | Patti: {d.Patti}
                       </div>
                     </div>
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xl" style={{ color: GREEN }}>→</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   );

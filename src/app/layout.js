@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body className="h-full bg-slate-50 font-sans antialiased text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <body className="h-full bg-slate-50 font-sans antialiased text-slate-900">
         <AuthProvider>
           {children}
         </AuthProvider>

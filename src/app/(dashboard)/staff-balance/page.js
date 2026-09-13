@@ -82,7 +82,7 @@ export default function StaffBalancePage() {
       cell: ({ row }) => (
         <button
           onClick={() => router.push(`/accounts?SUID=${row.original.SubUserID}`)}
-          className="font-bold text-xs text-blue-600 hover:underline dark:text-blue-400 capitalize"
+          className="font-bold text-xs text-blue-600 hover:underline capitalize"
         >
           {row.original.subusername || row.original.SubUserID}
         </button>

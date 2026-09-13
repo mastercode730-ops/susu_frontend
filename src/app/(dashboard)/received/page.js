@@ -278,7 +278,7 @@ export default function ReceivedPage() {
             <Card className="p-4 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold text-slate-500">Active Game</span>
-                <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400 capitalize">{gameName}</h3>
+                <h3 className="text-lg font-bold text-blue-600 capitalize">{gameName}</h3>
               </div>
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline" onClick={() => router.push(`/yantri?GameID=${gid}`)} leftIcon={<Hash className="h-4 w-4" />}>
@@ -311,16 +311,16 @@ export default function ReceivedPage() {
           <Card>
             <CardContent className="p-4 space-y-4">
               <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+                <div className="flex items-center gap-2 rounded-xl bg-slate-100 p-1">
                   <button
                     onClick={() => setViewAll(false)}
-                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${!viewAll ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-900 dark:text-white' : 'text-slate-500'}`}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${!viewAll ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
                   >
                     Today
                   </button>
                   <button
                     onClick={() => setViewAll(true)}
-                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${viewAll ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-900 dark:text-white' : 'text-slate-500'}`}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${viewAll ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
                   >
                     View All
                   </button>
@@ -363,11 +363,11 @@ export default function ReceivedPage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
                           <MessageSquare className="h-5 w-5" />
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-slate-900 dark:text-white capitalize group-hover:text-blue-600 transition-colors">
+                          <h4 className="text-sm font-bold text-slate-900 capitalize group-hover:text-blue-600 transition-colors">
                             {c.CustomerName}
                           </h4>
                           <p className="text-xs text-slate-500 font-mono">{c.Mobile}</p>
@@ -376,7 +376,7 @@ export default function ReceivedPage() {
                       {unread > 0 && <Badge variant="danger" dot>{unread}</Badge>}
                     </div>
                     {c.Rate && (
-                      <div className="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between dark:border-slate-800">
+                      <div className="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
                         <span>Rate: <strong className="text-emerald-600">{c.Rate}</strong></span>
                         <span>{c.LT}</span>
                       </div>
@@ -406,7 +406,7 @@ export default function ReceivedPage() {
             value={resultVal}
             onChange={(e) => setResultVal(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
           />
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <Button variant="outline" onClick={() => setShowResultModal(false)}>
               Cancel
             </Button>

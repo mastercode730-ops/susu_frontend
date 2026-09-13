@@ -222,7 +222,7 @@ export default function SaleHistoryPage() {
       cell: ({ row }) => (
         <button
           onClick={() => handleOpenChatPanel(row.original)}
-          className="font-bold text-xs text-blue-600 hover:underline dark:text-blue-400 capitalize"
+          className="font-bold text-xs text-blue-600 hover:underline capitalize"
         >
           {row.original.CustomerName || row.original.Mobile || row.original.CMobile}
         </button>
@@ -247,7 +247,7 @@ export default function SaleHistoryPage() {
       header: 'Total Sale',
       accessorKey: 'TotalAmount',
       cell: ({ row }) => (
-        <span className="font-bold text-xs text-slate-900 dark:text-white">
+        <span className="font-bold text-xs text-slate-900">
           {formatCurrency(parseFloat(row.original.TotalAmount) || 0)}
         </span>
       ),
@@ -255,7 +255,7 @@ export default function SaleHistoryPage() {
     {
       header: 'Message Payload',
       accessorKey: 'Message',
-      cell: ({ row }) => <span className="text-xs font-mono text-slate-600 dark:text-slate-300">{row.original.Message || '-'}</span>,
+      cell: ({ row }) => <span className="text-xs font-mono text-slate-600">{row.original.Message || '-'}</span>,
     },
   ];
 
@@ -299,7 +299,7 @@ export default function SaleHistoryPage() {
               </div>
 
               {composerRows.length > 0 && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
                   <div className="flex flex-wrap gap-2">
                     {composerRows.map((r, i) => (
                       <Badge key={i} variant="primary" className="gap-2 px-3 py-1">
@@ -310,14 +310,14 @@ export default function SaleHistoryPage() {
                       </Badge>
                     ))}
                   </div>
-                  <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <div className="text-xs font-bold text-slate-700">
                     Total Composer Amount: {formatCurrency(composerTotal)}
                   </div>
                 </div>
               )}
 
               {/* Main Search Controls */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+              <div className="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                 <Input label="Date" type="date" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} />
                 <Input
                   label="Search Query Payload"
@@ -336,7 +336,7 @@ export default function SaleHistoryPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Matching Chat Records ({saleRecords.length})</CardTitle>
-              <div className="text-sm font-bold text-slate-900 dark:text-white">
+              <div className="text-sm font-bold text-slate-900">
                 Total Match Sale: {formatCurrency(saleTotal)}
               </div>
             </CardHeader>
@@ -353,7 +353,7 @@ export default function SaleHistoryPage() {
       ) : (
         /* Chat Panel View */
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-800">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon-sm" onClick={() => setShowChatPanel(false)}>
                 <ArrowLeft className="h-4 w-4" />
@@ -388,7 +388,7 @@ export default function SaleHistoryPage() {
                       className={`flex flex-col max-w-[80%] rounded-2xl p-4 text-xs font-mono shadow-xs ${
                         isSent
                           ? 'ml-auto bg-blue-600 text-white'
-                          : 'mr-auto bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100'
+                          : 'mr-auto bg-slate-100 text-slate-900'
                       }`}
                     >
                       <div className="font-bold whitespace-pre-wrap">{m.Message}</div>
@@ -403,7 +403,7 @@ export default function SaleHistoryPage() {
               </div>
             )}
             {chatGrandTotal > 0 && (
-              <div className="rounded-xl bg-slate-100 p-3 text-center text-xs font-bold dark:bg-slate-800">
+              <div className="rounded-xl bg-slate-100 p-3 text-center text-xs font-bold">
                 Grand Total Accepted Bets: {formatCurrency(chatGrandTotal)}
               </div>
             )}

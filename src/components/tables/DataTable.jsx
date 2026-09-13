@@ -89,10 +89,10 @@ export function DataTable({
       </div>
 
       {/* Table Container */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200/80 dark:bg-slate-800/40 dark:text-slate-400 dark:border-slate-800">
+            <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200/80">
               <tr>
                 {columns.map((col, idx) => (
                   <th
@@ -100,7 +100,7 @@ export function DataTable({
                     className="px-4 py-3.5 whitespace-nowrap"
                     onClick={() => col.accessorKey && handleSort(col.accessorKey)}
                   >
-                    <div className={cn("flex items-center gap-1.5", col.accessorKey && "cursor-pointer select-none hover:text-slate-900 dark:hover:text-white")}>
+                    <div className={cn("flex items-center gap-1.5", col.accessorKey && "cursor-pointer select-none hover:text-slate-900")}>
                       {typeof col.header === 'function' ? col.header({ table: {} }) : col.header}
                       {col.accessorKey && <ArrowUpDown className="h-3.5 w-3.5 opacity-60" />}
                     </div>
@@ -108,7 +108,7 @@ export function DataTable({
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
@@ -123,9 +123,9 @@ export function DataTable({
                 paginatedData.map((row, rowIdx) => {
                   const actualIndex = (currentPage - 1) * pageSize + rowIdx;
                   return (
-                    <tr key={row.id || rowIdx} className="transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/50">
+                    <tr key={row.id || rowIdx} className="transition-colors hover:bg-slate-50/60">
                       {columns.map((col, colIdx) => (
-                        <td key={col.id || col.accessorKey || colIdx} className="px-4 py-3 text-slate-700 dark:text-slate-300">
+                        <td key={col.id || col.accessorKey || colIdx} className="px-4 py-3 text-slate-700">
                           {col.cell ? col.cell({ row: { original: row, index: actualIndex } }) : row[col.accessorKey] ?? '-'}
                         </td>
                       ))}
@@ -145,9 +145,9 @@ export function DataTable({
 
         {/* Pagination Footer */}
         {!isLoading && sortedData.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 text-xs text-slate-500">
             <div>
-              Showing <span className="font-semibold text-slate-900 dark:text-white">{(currentPage - 1) * pageSize + 1}</span> to <span className="font-semibold text-slate-900 dark:text-white">{Math.min(currentPage * pageSize, sortedData.length)}</span> of <span className="font-semibold text-slate-900 dark:text-white">{sortedData.length}</span> entries
+              Showing <span className="font-semibold text-slate-900">{(currentPage - 1) * pageSize + 1}</span> to <span className="font-semibold text-slate-900">{Math.min(currentPage * pageSize, sortedData.length)}</span> of <span className="font-semibold text-slate-900">{sortedData.length}</span> entries
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon-sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
@@ -156,7 +156,7 @@ export function DataTable({
               <Button variant="outline" size="icon-sm" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="font-medium text-slate-700 dark:text-slate-300 px-2">
+              <span className="font-medium text-slate-700 px-2">
                 Page {currentPage} of {totalPages}
               </span>
               <Button variant="outline" size="icon-sm" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>

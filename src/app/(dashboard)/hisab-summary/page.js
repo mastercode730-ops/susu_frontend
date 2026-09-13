@@ -213,7 +213,7 @@ export default function HisabSummaryPage() {
     {
       header: 'Customer',
       accessorKey: 'Mobile',
-      cell: ({ row }) => <span className="font-bold text-xs capitalize text-slate-900 dark:text-white">{row.original.Mobile || '-'}</span>,
+      cell: ({ row }) => <span className="font-bold text-xs capitalize text-slate-900">{row.original.Mobile || '-'}</span>,
     },
     {
       header: 'Game',
@@ -228,7 +228,7 @@ export default function HisabSummaryPage() {
     {
       header: 'Total Sale',
       accessorKey: 'Total_Amount',
-      cell: ({ row }) => <span className="font-bold text-xs text-slate-900 dark:text-white">{formatCurrency(parseFloat(row.original.Total_Amount) || 0)}</span>,
+      cell: ({ row }) => <span className="font-bold text-xs text-slate-900">{formatCurrency(parseFloat(row.original.Total_Amount) || 0)}</span>,
     },
     {
       header: 'Comm',
@@ -238,7 +238,7 @@ export default function HisabSummaryPage() {
     {
       header: 'Win Amt',
       accessorKey: 'WinAmount',
-      cell: ({ row }) => <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400">{formatCurrency(parseFloat(row.original.WinAmount) || 0)}</span>,
+      cell: ({ row }) => <span className="font-bold text-xs text-emerald-600">{formatCurrency(parseFloat(row.original.WinAmount) || 0)}</span>,
     },
     {
       header: 'Balance',
@@ -311,7 +311,7 @@ export default function HisabSummaryPage() {
 
             {/* Customer Dropdown */}
             <div className="space-y-1.5" ref={custWrapRef}>
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Customer
               </label>
               <div className="relative">
@@ -325,12 +325,12 @@ export default function HisabSummaryPage() {
                   onFocus={() => setShowCustDropdown(true)}
                 />
                 {showCustDropdown && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
                     {getFilteredCustomers().map((c, idx) => (
                       <div
                         key={idx}
                         onMouseDown={() => handleSelectCustomer(c.UID, c.CustomerName)}
-                        className="px-3 py-2 text-xs font-medium cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100"
+                        className="px-3 py-2 text-xs font-medium cursor-pointer hover:bg-slate-100 text-slate-900"
                       >
                         {c.CustomerName}
                       </div>
@@ -341,7 +341,7 @@ export default function HisabSummaryPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
             <Button onClick={handleSearch} isLoading={loading} leftIcon={<Search className="h-4 w-4" />}>
               SEARCH SUMMARY
             </Button>

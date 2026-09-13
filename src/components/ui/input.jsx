@@ -10,7 +10,7 @@ const Input = React.forwardRef(({ className, wrapperClassName, type, error, help
       {label && (
         <label
           htmlFor={inputId}
-          className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+          className="text-xs font-semibold uppercase tracking-wider text-slate-700"
         >
           {label}
         </label>
@@ -25,11 +25,11 @@ const Input = React.forwardRef(({ className, wrapperClassName, type, error, help
           type={type}
           id={inputId}
           className={cn(
-            "flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-600 dark:focus-visible:border-blue-400 dark:focus-visible:ring-blue-400/20",
+            "flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50",
             (type === "date" || type === "time" || type === "datetime-local") && "block",
             leftIcon && "pl-9",
             rightIcon && "pr-9",
-            error && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20 dark:border-red-500",
+            error && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20",
             className
           )}
           ref={ref}
@@ -45,7 +45,7 @@ const Input = React.forwardRef(({ className, wrapperClassName, type, error, help
         <p className="text-xs font-medium text-red-500">{error}</p>
       )}
       {!error && helperText && (
-        <p className="text-xs text-slate-500 dark:text-slate-400">{helperText}</p>
+        <p className="text-xs text-slate-500">{helperText}</p>
       )}
     </div>
   );

@@ -7,7 +7,7 @@ const Switch = React.forwardRef(({ className, label, id, checked, onChange, disa
     <label
       htmlFor={switchId}
       className={cn(
-        "inline-flex cursor-pointer items-center gap-2 select-none text-sm font-medium text-slate-700 dark:text-slate-200",
+        "inline-flex cursor-pointer items-center gap-2 select-none text-sm font-medium text-slate-700",
         disabled && "cursor-not-allowed opacity-50"
       )}
     >
@@ -23,7 +23,7 @@ const Switch = React.forwardRef(({ className, label, id, checked, onChange, disa
           {...props}
         />
         <div className={cn(
-          "h-6 w-11 rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500/20 peer-checked:bg-blue-600 dark:bg-slate-700 dark:peer-checked:bg-blue-500",
+          "h-6 w-11 rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500/20 peer-checked:bg-blue-600",
           className
         )} />
         <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-xs transition-transform duration-200 peer-checked:translate-x-5" />

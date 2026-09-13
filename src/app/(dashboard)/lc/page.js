@@ -183,7 +183,7 @@ export default function LCPage() {
       accessorKey: 'CustomerName',
       cell: ({ row }) => (
         <div>
-          <span className="font-bold text-xs capitalize text-slate-900 dark:text-white">{row.original.CustomerName}</span>
+          <span className="font-bold text-xs capitalize text-slate-900">{row.original.CustomerName}</span>
           <span className="block text-[11px] text-slate-500 font-mono">{row.original.Mobile}</span>
         </div>
       ),

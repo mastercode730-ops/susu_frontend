@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }) {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-50">
         <LoadingSpinner size="lg" text="Loading Susu9..." />
       </div>
     );
@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Sidebar Navigation */}
       <Sidebar
         collapsed={collapsed}

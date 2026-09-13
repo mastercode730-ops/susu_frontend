@@ -12,8 +12,8 @@ export function LoadingSpinner({ className, size = "default", text }) {
 
   return (
     <div className={cn("flex flex-col items-center justify-center gap-2 p-4", className)}>
-      <Loader2 className={cn("animate-spin text-blue-600 dark:text-blue-400", sizeClasses[size])} />
-      {text && <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{text}</span>}
+      <Loader2 className={cn("animate-spin text-blue-600", sizeClasses[size])} />
+      {text && <span className="text-xs font-medium text-slate-500">{text}</span>}
     </div>
   );
 }
@@ -21,7 +21,7 @@ export function LoadingSpinner({ className, size = "default", text }) {
 export function Skeleton({ className, ...props }) {
   return (
     <div
-      className={cn("animate-pulse rounded-xl bg-slate-200/80 dark:bg-slate-800/80", className)}
+      className={cn("animate-pulse rounded-xl bg-slate-200/80", className)}
       {...props}
     />
   );

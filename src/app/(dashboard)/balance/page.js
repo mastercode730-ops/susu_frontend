@@ -224,7 +224,7 @@ export default function BalancePage() {
       cell: ({ row }) => (
         <button
           onClick={() => handleOpenHistModal(row.original, '1')}
-          className="font-bold text-xs text-blue-600 hover:underline dark:text-blue-400"
+          className="font-bold text-xs text-blue-600 hover:underline"
         >
           {row.original.CMobile || row.original.UID}
         </button>
@@ -339,10 +339,10 @@ export default function BalancePage() {
           <p className="text-center text-xs text-slate-500 py-6">No balance history logs.</p>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-center text-xs">
-                  <thead className="bg-slate-50 font-bold uppercase text-slate-500 border-b border-slate-200 dark:bg-slate-800 dark:text-slate-400">
+                  <thead className="bg-slate-50 font-bold uppercase text-slate-500 border-b border-slate-200">
                     <tr>
                       <th className="p-3">Date</th>
                       <th className="p-3">Type</th>
@@ -350,9 +350,9 @@ export default function BalancePage() {
                       <th className="p-3">Narration</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100">
                     {histRows.map((d, i) => (
-                      <tr key={i} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                      <tr key={i} className="hover:bg-slate-50/60">
                         <td className="p-2.5 font-mono">{d.MessageDateTime ? new Date(d.MessageDateTime).toLocaleDateString('en-GB') : '-'}</td>
                         <td className="p-2.5 font-bold">{d.Type}</td>
                         <td className="p-2.5 font-bold text-emerald-600">{formatCurrency(parseFloat(d.WinAmount) || 0)}</td>

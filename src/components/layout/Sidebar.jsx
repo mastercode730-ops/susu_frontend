@@ -20,8 +20,7 @@ import {
   TrendingUp,
   Hash,
   UserX,
-  UserCheck,
-  Shield,
+  History,
   Key,
   LogOut,
   ChevronLeft,
@@ -44,42 +43,52 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
     return String(user[permissionKey]) !== 'False';
   };
 
+  // Account owner can hide any menu key below by setting Users.DisabledMenus
+  // (comma-separated) directly in the database — see
+  // susu_backend/migrations/002_menu_visibility.sql. Applies to the owner
+  // and all their sub-users, takes effect on next load with no redeploy.
+  const disabledMenus = user.disabledMenus || [];
+  const enabled = (key) => !disabledMenus.includes(key);
+
   const navItems = [
-    { href: '/home', icon: Home, label: 'Dashboard', visible: true },
-    { href: '/customer', icon: UserPlus, label: 'Add Contact', visible: showItem('ADDContacts') },
-    { href: '/game', icon: Gamepad2, label: 'Add Game', visible: showItem('ADDGames') },
-    { href: '/results', icon: Trophy, label: 'Result', visible: showItem('Result') },
-    { href: '/sale-history', icon: MessageSquare, label: 'Find Chat', visible: true },
-    { href: '/received', icon: Inbox, label: 'Received', visible: true },
-    { href: '/hisab', icon: Scale, label: 'Hisab', visible: showItem('Hisab') },
-    { href: '/hisab-summary', icon: Scale, label: 'Hisab Summary', visible: showItem('HisabSummary') },
-    { href: '/date-wise-hisab', icon: Calendar, label: 'Date Wise Hisab', visible: showItem('DateWiseHisab') },
-    { href: '/accounts', icon: IndianRupee, label: 'Accounts', visible: showItem('Accounts') },
-    { href: '/subusers', icon: Users, label: 'Sub User', visible: !isStaff },
-    { href: '/balance', icon: Wallet, label: 'Balance', visible: showItem('Balance') },
-    { href: '/staff-balance', icon: Wallet, label: 'Sub User Balance', visible: !isStaff },
-    { href: '/lc', icon: Percent, label: 'LC', visible: showItem('LC') },
-    { href: '/pl-yantri', icon: TrendingUp, label: 'P&L Yantri', visible: true },
-    { href: '/yantri', icon: Hash, label: 'Yantri', visible: showItem('Yantri') },
-    { href: '/absent-customers', icon: UserX, label: 'Absent Report', visible: true },
-    { href: '/assign-clients', icon: UserCheck, label: 'Assign Customer', visible: !isStaff },
-    { href: '/access-rights', icon: Shield, label: 'Access Rights', visible: !isStaff },
-    { href: '/change-password', icon: Key, label: 'Change Password', visible: true },
+    { key: 'home', href: '/home', icon: Home, label: 'Dashboard', visible: enabled('home') },
+    { key: 'customer', href: '/customer', icon: UserPlus, label: 'Add Contact', visible: showItem('ADDContacts') && enabled('customer') },
+    { key: 'game', href: '/game', icon: Gamepad2, label: 'Add Game', visible: showItem('ADDGames') && enabled('game') },
+    { key: 'results', href: '/results', icon: Trophy, label: 'Result', visible: showItem('Result') && enabled('results') },
+    { key: 'sale-history', href: '/sale-history', icon: MessageSquare, label: 'Find Chat', visible: enabled('sale-history') },
+    { key: 'received', href: '/received', icon: Inbox, label: 'Received', visible: enabled('received') },
+    { key: 'hisab', href: '/hisab', icon: Scale, label: 'Hisab', visible: showItem('Hisab') && enabled('hisab') },
+    { key: 'hisab-summary', href: '/hisab-summary', icon: Scale, label: 'Hisab Summary', visible: showItem('HisabSummary') && enabled('hisab-summary') },
+    { key: 'date-wise-hisab', href: '/date-wise-hisab', icon: Calendar, label: 'Date Wise Hisab', visible: showItem('DateWiseHisab') && enabled('date-wise-hisab') },
+    { key: 'accounts', href: '/accounts', icon: IndianRupee, label: 'Accounts', visible: showItem('Accounts') && enabled('accounts') },
+    {
+      key: 'staff-management', href: '/staff-management', icon: Users, label: 'Sub User Management',
+      visible: !isStaff && enabled('staff-management'),
+      activeMatch: (p) => ['/staff-management', '/subusers', '/access-rights', '/assign-clients'].includes(p),
+    },
+    { key: 'balance', href: '/balance', icon: Wallet, label: 'Balance', visible: showItem('Balance') && enabled('balance') },
+    { key: 'staff-balance', href: '/staff-balance', icon: Wallet, label: 'Sub User Balance', visible: !isStaff && enabled('staff-balance') },
+    { key: 'lc', href: '/lc', icon: Percent, label: 'LC', visible: showItem('LC') && enabled('lc') },
+    { key: 'pl-yantri', href: '/pl-yantri', icon: TrendingUp, label: 'P&L Yantri', visible: enabled('pl-yantri') },
+    { key: 'yantri', href: '/yantri', icon: Hash, label: 'Yantri', visible: showItem('Yantri') && enabled('yantri') },
+    { key: 'absent-customers', href: '/absent-customers', icon: UserX, label: 'Absent Report', visible: enabled('absent-customers') },
+    { key: 'activity-log', href: '/activity-log', icon: History, label: 'Activity Log', visible: !isStaff && enabled('activity-log') },
+    { key: 'change-password', href: '/change-password', icon: Key, label: 'Change Password', visible: enabled('change-password') },
   ];
 
   const visibleNav = navItems.filter((i) => i.visible);
 
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between bg-white text-slate-900 border-r border-slate-200/80 dark:bg-slate-950 dark:text-slate-100 dark:border-slate-800">
+    <div className="flex h-full flex-col justify-between bg-white text-slate-900 border-r border-slate-200/80">
       {/* Brand header */}
       <div>
-        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-100 dark:border-slate-800/80">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-100">
           <Link href="/home" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 font-black text-white shadow-md">
               S9
             </div>
             {(!collapsed || mobileOpen) && (
-              <span className="text-lg font-bold tracking-wider text-slate-900 dark:text-white">
+              <span className="text-lg font-bold tracking-wider text-slate-900">
                 SUSU9
               </span>
             )}
@@ -87,7 +96,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
           {!mobileOpen && (
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
             >
               {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </button>
@@ -95,16 +104,16 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
         </div>
 
         {/* User Card */}
-        <div className="p-3 border-b border-slate-100 dark:border-slate-800/80">
-          <div className="flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5 border border-slate-100 dark:border-transparent">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-500/20 font-semibold text-blue-600 dark:text-blue-400 text-xs uppercase">
+        <div className="p-3 border-b border-slate-100">
+          <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-2.5 border border-slate-100">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 font-semibold text-blue-600 text-xs uppercase">
               {user.UID?.charAt(0) || 'U'}
             </div>
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0 flex-1">
-                <div className="truncate text-xs font-bold text-slate-900 dark:text-white">{user.UID}</div>
+                <div className="truncate text-xs font-bold text-slate-900">{user.UID}</div>
                 {isStaff && (
-                  <div className="truncate text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                  <div className="truncate text-[10px] text-slate-500 font-medium">
                     Staff: {user.SubUID}
                   </div>
                 )}
@@ -117,7 +126,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
         <div className="px-3 py-3 overflow-y-auto max-h-[calc(100vh-13rem)] space-y-1">
           {visibleNav.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = item.activeMatch ? item.activeMatch(pathname) : pathname === item.href;
             return (
               <Link
                 key={item.href}
@@ -127,11 +136,11 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-150 group",
                   isActive
                     ? "bg-blue-600 text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 )}
                 title={collapsed ? item.label : undefined}
               >
-                <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-slate-500 dark:text-slate-400")} />
+                <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-slate-500")} />
                 {(!collapsed || mobileOpen) && (
                   <span className="truncate">{item.label}</span>
                 )}
@@ -144,8 +153,8 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
               href="/admin/dashboard"
               onClick={() => setMobileOpen(false)}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-slate-800/80 transition-all",
-                pathname?.startsWith('/admin') && "bg-amber-100 dark:bg-amber-500/20"
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-amber-600 hover:bg-amber-50 transition-all",
+                pathname?.startsWith('/admin') && "bg-amber-100"
               )}
             >
               <ShieldAlert className="h-4 w-4 shrink-0" />
@@ -156,19 +165,19 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
       </div>
 
       {/* Footer Support & Logout */}
-      <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 space-y-1">
+      <div className="p-3 border-t border-slate-100 space-y-1">
         <a
           href="https://wa.me/+17073166800"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800/80 transition-colors"
+          className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 transition-colors"
         >
           <Headphones className="h-4 w-4 shrink-0" />
           {(!collapsed || mobileOpen) && <span>WhatsApp Support</span>}
         </a>
         <button
           onClick={() => logout()}
-          className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+          className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           {(!collapsed || mobileOpen) && <span>Logout</span>}
