@@ -220,7 +220,8 @@ function YantriWorkspace() {
           {loading ? (
             <LoadingSpinner text="Computing 100-number Yantri matrix..." />
           ) : (
-            <div className="grid grid-cols-11 gap-1 text-center font-mono">
+            <div className="overflow-x-auto">
+            <div className="grid grid-cols-11 gap-2 text-center font-mono min-w-[780px]">
               {Array.from({ length: 10 }).map((_, rowIdx) => {
                 const start = rowIdx * 10 + 1;
                 return (
@@ -228,19 +229,20 @@ function YantriWorkspace() {
                     {Array.from({ length: 10 }).map((_, colIdx) => {
                       const num = start + colIdx;
                       return (
-                        <div key={num} className="rounded-lg border border-slate-200 bg-white p-2 text-xs font-bold">
-                          <span className="block text-[10px] text-blue-600">{String(num).padStart(2, '0')}</span>
-                          <span className="text-sm font-extrabold text-slate-900">{numValues[num] || '-'}</span>
+                        <div key={num} className="rounded-lg border border-slate-200 bg-white p-3">
+                          <span className="block text-xs font-bold text-blue-500">{String(num).padStart(2, '0')}</span>
+                          <span className="text-xl font-black text-slate-900 tracking-tight">{numValues[num] || '-'}</span>
                         </div>
                       );
                     })}
-                    <div className="rounded-lg border border-emerald-300 bg-emerald-50/50 p-2 text-xs font-bold">
-                      <span className="block text-[10px] text-emerald-600">TOT</span>
-                      <span className="text-sm font-extrabold text-emerald-600">{totals.rowTotals[rowIdx]}</span>
+                    <div className="rounded-lg border border-emerald-300 bg-emerald-50/50 p-3">
+                      <span className="block text-xs font-bold text-emerald-600">TOT</span>
+                      <span className="text-xl font-black text-emerald-600 tracking-tight">{totals.rowTotals[rowIdx]}</span>
                     </div>
                   </React.Fragment>
                 );
               })}
+            </div>
             </div>
           )}
         </Card>
@@ -248,17 +250,17 @@ function YantriWorkspace() {
         {/* Aggregate Controls */}
         <Card className="p-6 space-y-6">
           <CardTitle>Matrix Summaries</CardTitle>
-          <div className="space-y-3 font-mono text-sm">
-            <div className="flex justify-between py-2 border-b border-slate-100">
-              <span className="text-slate-500">Dara Sale</span>
-              <span className="font-bold text-slate-900">{formatCurrency(totals.dSale)}</span>
+          <div className="space-y-3 font-mono">
+            <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <span className="text-sm text-slate-500">Dara Sale</span>
+              <span className="text-lg font-black text-slate-900 tracking-tight">{formatCurrency(totals.dSale)}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-slate-100">
-              <span className="text-slate-500">Akhar Sale</span>
-              <span className="font-bold text-slate-900">{formatCurrency(totals.aSale)}</span>
+            <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <span className="text-sm text-slate-500">Akhar Sale</span>
+              <span className="text-lg font-black text-slate-900 tracking-tight">{formatCurrency(totals.aSale)}</span>
             </div>
-            <div className="flex justify-between py-3 font-extrabold text-lg text-emerald-600 border-t border-slate-200">
-              <span>Grand Total</span>
+            <div className="flex justify-between items-center py-3 font-black text-2xl text-emerald-600 tracking-tight border-t border-slate-200">
+              <span className="text-sm font-bold uppercase tracking-wider text-slate-600">Grand Total</span>
               <span>{formatCurrency(totals.grand)}</span>
             </div>
           </div>

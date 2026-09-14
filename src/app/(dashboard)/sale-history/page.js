@@ -334,7 +334,7 @@ export default function SaleHistoryPage() {
 
           {/* Results Table Card */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <CardTitle>Matching Chat Records ({saleRecords.length})</CardTitle>
               <div className="text-sm font-bold text-slate-900">
                 Total Match Sale: {formatCurrency(saleTotal)}
@@ -353,14 +353,14 @@ export default function SaleHistoryPage() {
       ) : (
         /* Chat Panel View */
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100">
-            <div className="flex items-center gap-3">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
+            <div className="flex items-center gap-3 min-w-0">
               <Button variant="ghost" size="icon-sm" onClick={() => setShowChatPanel(false)}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div>
-                <CardTitle>{selectedChatParams?.customerName} — {selectedChatParams?.gameName}</CardTitle>
-                <p className="text-xs text-slate-500 font-mono">Rates: {selectedChatParams?.rates}</p>
+              <div className="min-w-0">
+                <CardTitle className="truncate">{selectedChatParams?.customerName} — {selectedChatParams?.gameName}</CardTitle>
+                <p className="text-xs text-slate-500 font-mono truncate">Rates: {selectedChatParams?.rates}</p>
               </div>
             </div>
             <Input
@@ -370,7 +370,7 @@ export default function SaleHistoryPage() {
                 setChatDate(e.target.value);
                 loadChatHistory(selectedChatParams, e.target.value);
               }}
-              className="w-auto"
+              className="w-auto shrink-0"
             />
           </CardHeader>
           <CardContent className="p-6 space-y-4">

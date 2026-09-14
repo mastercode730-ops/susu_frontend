@@ -291,8 +291,8 @@ export default function BalancePage() {
 
       {/* Date Search Card */}
       <Card>
-        <CardContent className="p-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-auto" />
             <Button onClick={handleSearch} isLoading={loading} leftIcon={<Search className="h-4 w-4" />}>
               Find Balances

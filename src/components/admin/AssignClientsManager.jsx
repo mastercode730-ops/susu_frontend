@@ -162,7 +162,7 @@ export function AssignClientsManager() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <CardTitle>Assignable Customers Directory ({filteredClients.length})</CardTitle>
           <Button onClick={handleSaveAssignments} leftIcon={<Save className="h-4 w-4" />}>
             SAVE ASSIGNMENTS

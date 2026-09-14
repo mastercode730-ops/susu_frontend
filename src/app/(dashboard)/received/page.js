@@ -275,19 +275,24 @@ export default function ReceivedPage() {
         <>
           {/* Top Control Bar */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-            <Card className="p-4 flex items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold text-slate-500">Active Game</span>
-                <h3 className="text-lg font-bold text-blue-600 capitalize">{gameName}</h3>
+            <Card className="p-4 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-semibold text-slate-500">Active Game</span>
+                  <h3 className="text-lg font-bold text-blue-600 capitalize">{gameName}</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={() => router.push(`/yantri?GameID=${gid}`)} leftIcon={<Hash className="h-4 w-4" />}>
+                    Yantri
+                  </Button>
+                  <Button size="sm" variant="primary" onClick={handleOpenResultModal} leftIcon={<Trophy className="h-4 w-4" />}>
+                    Declare Result
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" onClick={() => router.push(`/yantri?GameID=${gid}`)} leftIcon={<Hash className="h-4 w-4" />}>
-                  Yantri
-                </Button>
-                <Button size="sm" variant="primary" onClick={handleOpenResultModal} leftIcon={<Trophy className="h-4 w-4" />}>
-                  Result
-                </Button>
-              </div>
+              <p className="text-[11px] text-slate-400">
+                Click <span className="font-semibold text-blue-600">Declare Result</span> to enter today&apos;s winning number for {gameName || 'this game'}.
+              </p>
             </Card>
 
             <Card className="p-4 flex items-center justify-between">
@@ -310,8 +315,8 @@ export default function ReceivedPage() {
           {/* Filter Tabs & Search */}
           <Card>
             <CardContent className="p-4 space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2 rounded-xl bg-slate-100 p-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 rounded-xl bg-slate-100 p-1 self-start">
                   <button
                     onClick={() => setViewAll(false)}
                     className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${!viewAll ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
@@ -330,7 +335,7 @@ export default function ReceivedPage() {
                   value={searchQuery}
                   onChange={handleSearchQueryChange}
                   leftIcon={<Search className="h-4 w-4" />}
-                  className="max-w-xs"
+                  className="w-full sm:max-w-xs"
                 />
               </div>
             </CardContent>

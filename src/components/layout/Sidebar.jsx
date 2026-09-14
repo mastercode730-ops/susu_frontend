@@ -79,10 +79,10 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
   const visibleNav = navItems.filter((i) => i.visible);
 
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between bg-white text-slate-900 border-r border-slate-200/80">
-      {/* Brand header */}
-      <div>
-        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-100">
+    <div className="flex h-full flex-col bg-white text-slate-900 border-r border-slate-200/80">
+      {/* Brand header, user card & nav list — takes remaining space above the footer */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b border-slate-100">
           <Link href="/home" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 font-black text-white shadow-md">
               S9
@@ -103,27 +103,8 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
           )}
         </div>
 
-        {/* User Card */}
-        <div className="p-3 border-b border-slate-100">
-          <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-2.5 border border-slate-100">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 font-semibold text-blue-600 text-xs uppercase">
-              {user.UID?.charAt(0) || 'U'}
-            </div>
-            {(!collapsed || mobileOpen) && (
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-xs font-bold text-slate-900">{user.UID}</div>
-                {isStaff && (
-                  <div className="truncate text-[10px] text-slate-500 font-medium">
-                    Staff: {user.SubUID}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Navigation list */}
-        <div className="px-3 py-3 overflow-y-auto max-h-[calc(100vh-13rem)] space-y-1">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-1">
           {visibleNav.map((item) => {
             const Icon = item.icon;
             const isActive = item.activeMatch ? item.activeMatch(pathname) : pathname === item.href;
@@ -165,7 +146,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
       </div>
 
       {/* Footer Support & Logout */}
-      <div className="p-3 border-t border-slate-100 space-y-1">
+      <div className="shrink-0 p-3 border-t border-slate-100 space-y-1">
         <a
           href="https://wa.me/+17073166800"
           target="_blank"

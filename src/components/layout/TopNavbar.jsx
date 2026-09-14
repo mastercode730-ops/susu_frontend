@@ -2,15 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Menu, Home, Headphones, User, LogOut, ChevronDown, Bell } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Menu, Home, Headphones, User, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 
 export function TopNavbar({ onToggleMobileNav, collapsed }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { user, logout } = useAuth();
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
@@ -65,12 +63,12 @@ export function TopNavbar({ onToggleMobileNav, collapsed }) {
             className="flex items-center gap-2 rounded-xl border border-slate-200 p-1.5 pr-3 hover:bg-slate-50 transition-colors"
           >
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-xs uppercase">
-              {user?.UID?.charAt(0) || 'U'}
+              {(user?.displayName || user?.Mobile || 'U').charAt(0)}
             </div>
             <div className="hidden sm:flex flex-col text-left">
-              <span className="text-xs font-bold text-slate-900 leading-tight">{user?.UID}</span>
+              <span className="text-xs font-bold text-slate-900 leading-tight capitalize">{user?.displayName || user?.Mobile || user?.UID}</span>
               {user?.SubUID && (
-                <span className="text-[10px] text-slate-500 font-medium leading-tight">Staff: {user.SubUID}</span>
+                <span className="text-[10px] text-slate-500 font-medium leading-tight">Staff Account</span>
               )}
             </div>
             <ChevronDown className="h-4 w-4 text-slate-400" />
@@ -81,7 +79,7 @@ export function TopNavbar({ onToggleMobileNav, collapsed }) {
               <div className="fixed inset-0 z-40" onClick={() => setUserDropdownOpen(false)} />
               <div className="absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl">
                 <div className="px-3 py-2 border-b border-slate-100">
-                  <p className="text-xs font-bold text-slate-900">{user?.UID}</p>
+                  <p className="text-xs font-bold text-slate-900 capitalize">{user?.displayName || user?.Mobile || user?.UID}</p>
                   {user?.SubUID && <p className="text-[10px] text-slate-500">Staff Account</p>}
                 </div>
                 <Link

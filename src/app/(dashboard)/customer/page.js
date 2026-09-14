@@ -563,7 +563,7 @@ export default function ContactsPage() {
                 />
               </FormRow>
 
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
                 <FormRow label="D Comm %">
                   <Input type="number" value={dPComm} onChange={(e) => setDPComm(e.target.value)} disabled={ratesReadonly} className="font-bold text-slate-900" />
                 </FormRow>
@@ -591,8 +591,8 @@ export default function ContactsPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                <FormRow label="Hissa Party" className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                <FormRow label="Hissa Party" className="sm:col-span-2">
                   <Select value={hissaPartyID} onChange={(e) => setHissaPartyID(e.target.value)} className="font-semibold text-slate-900">
                     <option value="0">Select Customer Name</option>
                     {contacts.map((c) => (
@@ -607,8 +607,8 @@ export default function ContactsPage() {
                 </FormRow>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                <FormRow label="Comm Party" className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                <FormRow label="Comm Party" className="sm:col-span-2">
                   <Select value={commPartyID} onChange={(e) => setCommPartyID(e.target.value)} className="font-semibold text-slate-900">
                     <option value="0">Select Customer</option>
                     {contacts.map((c) => (
@@ -626,8 +626,8 @@ export default function ContactsPage() {
                 </FormRow>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                <FormRow label="LC Party" className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                <FormRow label="LC Party" className="sm:col-span-2">
                   <Select value={lcPartyID} onChange={(e) => setLcPartyID(e.target.value)} className="font-semibold text-slate-900">
                     <option value="0">Select Customer</option>
                     {contacts.map((c) => (

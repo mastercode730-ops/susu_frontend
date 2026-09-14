@@ -238,7 +238,7 @@ export default function LCPage() {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
             <Input label="From Date" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
             <Input label="To Date" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button variant="primary" className="font-bold uppercase tracking-wider" onClick={handleSearch} isLoading={loading} leftIcon={<Search className="h-4 w-4" />}>
                 SEARCH
               </Button>
@@ -265,7 +265,7 @@ export default function LCPage() {
         <CardHeader>
           <CardTitle>Delete Commission Record</CardTitle>
         </CardHeader>
-        <CardContent className="p-4 flex items-center gap-4">
+        <CardContent className="p-4 flex flex-wrap items-center gap-4">
           <Input type="date" value={deleteDate} onChange={(e) => setDeleteDate(e.target.value)} className="w-auto" />
           <Button variant="danger" className="font-bold uppercase tracking-wider" onClick={handleDeleteLC} isLoading={submittingDelete} leftIcon={<Trash2 className="h-4 w-4" />}>
             DELETE LC

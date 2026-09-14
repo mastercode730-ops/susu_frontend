@@ -119,7 +119,7 @@ export default function StaffBalancePage() {
       />
 
       <Card>
-        <CardContent className="p-4 flex items-center gap-3">
+        <CardContent className="p-4 flex flex-wrap items-center gap-3">
           <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-auto" />
           <Button onClick={() => loadStaffGrid(selectedDate)} isLoading={loading} leftIcon={<Search className="h-4 w-4" />}>
             Find Balances
