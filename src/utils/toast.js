@@ -1,8 +1,33 @@
+let styleInjected = false;
+
+function ensureStyle() {
+  if (styleInjected || typeof document === 'undefined') return;
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(-10px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .toast-notification {
+      animation: toast-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    .toast-notification.toast-leaving {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.97);
+    }
+  `;
+  document.head.appendChild(style);
+  styleInjected = true;
+}
+
 export const showToast = (msg, type = 'success') => {
   if (typeof document === 'undefined') return;
+  ensureStyle();
+
   const existing = document.querySelector('.toast-notification');
   if (existing) existing.remove();
-  
+
   const toast = document.createElement('div');
   toast.className = 'toast-notification';
   toast.style.cssText = `
@@ -16,5 +41,9 @@ export const showToast = (msg, type = 'success') => {
   `;
   toast.textContent = msg;
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+
+  setTimeout(() => {
+    toast.classList.add('toast-leaving');
+    setTimeout(() => toast.remove(), 220);
+  }, 3000);
 };

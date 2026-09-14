@@ -148,7 +148,7 @@ export default function LCPage() {
       showToast('Please select date first', 'error');
       return;
     }
-    if (!confirm('Do you want to Delete it?')) return;
+    if (!confirm('Do you want to deactivate it?')) return;
 
     setSubmittingDelete(true);
     const fDeleteDate = toApiDate(deleteDate);
@@ -156,10 +156,10 @@ export default function LCPage() {
     try {
       const r = await API.delete('/sapi/lc/delete', { date: fDeleteDate });
       if (r && r.success) {
-        showToast('Data Deleted Successfully!');
+        showToast('LC entries deactivated!');
         handleSearch();
       } else {
-        showToast(r?.message || 'Error deleting LC', 'error');
+        showToast(r?.message || 'Error deactivating LC', 'error');
       }
     } catch (e) {
       console.error(e);

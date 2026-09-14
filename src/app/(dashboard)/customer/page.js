@@ -153,7 +153,7 @@ export default function ContactsPage() {
           ...prev,
           [mobileNo]: { ...prev[mobileNo], IsActive: nextVal },
         }));
-        showToast('Status updated successfully!');
+        showToast(nextVal ? 'Customer login activated!' : 'Customer login deactivated!');
       } else {
         showToast(r?.message || 'Error updating status', 'error');
       }
@@ -162,9 +162,17 @@ export default function ContactsPage() {
     }
   };
 
+  const TOGGLE_FLAG_LABELS = {
+    IsSelfComm: 'Self Commission',
+    IsYantriTo: 'Yantri To',
+    IsLimit: 'Limit',
+    IsUttar: 'Uttar',
+  };
+
   const handleToggleFlag = async (contactId, field, currentValue) => {
     const isYes = currentValue === 'True' || currentValue === 1 || currentValue === true;
     const newVal = isYes ? 'False' : 'True';
+    const label = TOGGLE_FLAG_LABELS[field] || 'Setting';
     try {
       const r = await API.post('/sapi/customer/toggle', { cid: contactId, field, value: newVal });
       if (r && r.success) {
@@ -176,7 +184,7 @@ export default function ContactsPage() {
             return c;
           })
         );
-        showToast('Contact updated!');
+        showToast(`${label} ${newVal === 'True' ? 'enabled' : 'disabled'}!`);
       } else {
         showToast('Toggle failed', 'error');
       }
@@ -265,19 +273,19 @@ export default function ContactsPage() {
 
   const handleDeleteCustomer = async () => {
     if (!cid) return;
-    if (!window.confirm('Delete this contact? All pending chats will be rejected.')) return;
+    if (!window.confirm('Deactivate this contact? All pending chats will be rejected.')) return;
 
     try {
       const r = await API.post('/sapi/customer/delete', { cid });
       if (r && r.success) {
-        showToast('Contact deleted');
+        showToast('Contact deactivated!');
         handleResetForm();
         await loadContactsList();
       } else {
-        showToast(r?.message || 'Error deleting', 'error');
+        showToast(r?.message || 'Error deactivating contact', 'error');
       }
     } catch (e) {
-      showToast('Error deleting contact', 'error');
+      showToast('Error deactivating contact', 'error');
     }
   };
 
@@ -352,7 +360,7 @@ export default function ContactsPage() {
       });
 
       if (r && r.success) {
-        showToast('Rate deleted');
+        showToast('Rate deactivated!');
         handleResetRateForm();
         await handleLoadRates(selectedContactRates.cid);
       } else {

@@ -324,22 +324,22 @@ export default function AccountsPage() {
 
   const handleDeleteEntry = async () => {
     if (!selectedEntry?.AID) return;
-    if (!window.confirm('Delete this accounts entry? This cannot be undone.')) return;
+    if (!window.confirm('Deactivate this accounts entry?')) return;
 
     setDeleting(true);
     try {
       const r = await API.delete(`/sapi/accounts/${selectedEntry.AID}`);
       if (r && r.success) {
-        showToast(r.pairedDeleted ? 'Entry and its paired transfer leg deleted' : 'Entry deleted');
+        showToast(r.pairedDeleted ? 'Entry and its paired transfer leg deactivated!' : 'Entry deactivated!');
         setSelectedEntry(null);
         loadLedgerHistory(histFrom, histTo, histParty, histType);
         if (selectedCustomerId && selectedCustomerId !== 'Self') fetchMiniHistory(selectedCustomerId);
       } else {
-        showToast(r?.message || 'Error deleting entry', 'error');
+        showToast(r?.message || 'Error deactivating entry', 'error');
       }
     } catch (e) {
       console.error(e);
-      showToast('Error deleting entry', 'error');
+      showToast('Error deactivating entry', 'error');
     } finally {
       setDeleting(false);
     }

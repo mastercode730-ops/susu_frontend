@@ -20,6 +20,7 @@ export function SubUsersManager() {
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [originalIsActive, setOriginalIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const [errName, setErrName] = useState(false);
@@ -73,7 +74,13 @@ export function SubUsersManager() {
       }
 
       if (r && r.success) {
-        showToast(subID ? 'Sub User updated successfully!' : 'Sub User created successfully!');
+        let message = 'Sub User created successfully!';
+        if (subID) {
+          if (originalIsActive && !isActive) message = 'Sub User deactivated!';
+          else if (!originalIsActive && isActive) message = 'Sub User activated!';
+          else message = 'Sub User updated successfully!';
+        }
+        showToast(message);
         handleCancel();
         await loadUsers();
       } else {
@@ -87,11 +94,13 @@ export function SubUsersManager() {
   };
 
   const handleEditUser = (u) => {
+    const active = u.IsActive === 'True' || u.IsActive === true;
     setSubID(u.SubUserID);
     setName(u.subusername || '');
     setMobile(u.Mobile || '');
     setPassword(u.Password || '');
-    setIsActive(u.IsActive === 'True' || u.IsActive === true);
+    setIsActive(active);
+    setOriginalIsActive(active);
 
     setErrName(false);
     setErrMobile(false);
@@ -106,6 +115,7 @@ export function SubUsersManager() {
     setMobile('');
     setPassword('');
     setIsActive(true);
+    setOriginalIsActive(true);
     setErrName(false);
     setErrMobile(false);
     setErrPwd(false);

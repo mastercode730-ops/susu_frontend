@@ -103,8 +103,16 @@ export default function GamesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const TOGGLE_LABELS = {
+    IsActive: 'Game',
+    IsNextDayResult: 'Next Day Result',
+    IsAcceptedStatus: 'Auto Accept',
+    IsRejectedMsg: 'Over Time Reject',
+  };
+
   const handleToggle = async (gid, field, currentValue) => {
     const value = !currentValue;
+    const label = TOGGLE_LABELS[field] || 'Setting';
     try {
       const r = await API.post('/sapi/game/toggle', { gid, field, value });
       if (r && r.success) {
@@ -116,7 +124,11 @@ export default function GamesPage() {
             return g;
           })
         );
-        showToast('Game updated!');
+        showToast(
+          field === 'IsActive'
+            ? (value ? 'Game activated!' : 'Game deactivated!')
+            : `${label} ${value ? 'enabled' : 'disabled'}!`
+        );
       } else {
         showToast('Update failed', 'error');
       }
@@ -126,17 +138,17 @@ export default function GamesPage() {
   };
 
   const handleDeleteGame = async (gid, name) => {
-    if (!window.confirm(`Delete game "${name}"?`)) return;
+    if (!window.confirm(`Deactivate game "${name}"?`)) return;
     try {
       const res = await API.delete(`/sapi/game/${gid}`);
       if (res && res.success) {
-        showToast('Game deleted successfully!');
+        showToast('Game deactivated!');
         await loadGames();
       } else {
-        showToast(res?.message || 'Error deleting game', 'error');
+        showToast(res?.message || 'Error deactivating game', 'error');
       }
     } catch (e) {
-      showToast('Error deleting game', 'error');
+      showToast('Error deactivating game', 'error');
     }
   };
 
