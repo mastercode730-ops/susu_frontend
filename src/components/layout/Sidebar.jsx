@@ -67,7 +67,11 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) 
       activeMatch: (p) => ['/staff-management', '/subusers', '/access-rights', '/assign-clients'].includes(p),
     },
     { key: 'balance', href: '/balance', icon: Wallet, label: 'Balance', visible: showItem('Balance') && enabled('balance') },
-    { key: 'staff-balance', href: '/staff-balance', icon: Wallet, label: 'Sub User Balance', visible: !isStaff && enabled('staff-balance') },
+    // Hidden platform-wide for every owner and sub-user — was previously
+    // `!isStaff && enabled('staff-balance')` (per-account DB toggle). The
+    // /staff-balance route and its API still work if linked to directly;
+    // only the nav entry is hidden.
+    { key: 'staff-balance', href: '/staff-balance', icon: Wallet, label: 'Sub User Balance', visible: false },
     { key: 'lc', href: '/lc', icon: Percent, label: 'LC', visible: showItem('LC') && enabled('lc') },
     { key: 'pl-yantri', href: '/pl-yantri', icon: TrendingUp, label: 'P&L Yantri', visible: enabled('pl-yantri') },
     { key: 'yantri', href: '/yantri', icon: Hash, label: 'Yantri', visible: showItem('Yantri') && enabled('yantri') },
