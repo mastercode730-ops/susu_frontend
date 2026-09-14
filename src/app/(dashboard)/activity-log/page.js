@@ -15,6 +15,7 @@ const ACTION_VARIANT = {
   Update: 'primary',
   Deactivate: 'warning',
   Delete: 'danger',
+  Login: 'secondary',
 };
 
 function formatDateTime(value) {
